@@ -311,7 +311,6 @@ miie analyze /path/to/repo -c /path/to/config.yaml
 | Repos with >100K commits may timeout | Increase timeout or reduce window |
 | Windows terminal Unicode issues | Use Windows Terminal or WSL |
 | Minimum sample size gates | Use repos with sufficient history |
-| Python 3.13 not supported | Use Python 3.10-3.12 |
 
 ---
 

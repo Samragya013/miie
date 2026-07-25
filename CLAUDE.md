@@ -8,13 +8,14 @@ MIIE (Measurement Integrity Intelligence Engine) is a Python research tool that 
 
 ## Quick Reference
 
-- **Version**: 1.6.0
-- **Python**: 3.10-3.12
+- **Version**: 1.6.1
+- **Python**: 3.10-3.13
 - **Platform**: **Windows-only** (no Linux/macOS CI, no cross-platform guarantees)
 - **Package**: `miie` (src layout: `src/miie/`)
 - **CLI**: `miie` (entry: `miie.cli:cli`)
 - **API**: `miie-api` (FastAPI, entry: `miie.api.server:main`)
-- **Tests**: `pytest` (2775 tests, 2 pre-existing failures in architecture tests, 6 skipped)
+- **Tests**: `pytest` (2849+ tests, all passing, 6 skipped)
+- **CI**: ALL 10 JOBS GREEN (lint, typecheck, unit-tests x4, integration-tests, regression, detector-regression, security)
 - **Formatting**: black (120), isort, flake8, mypy
 
 ## Architecture

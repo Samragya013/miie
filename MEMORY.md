@@ -2,49 +2,44 @@
 
 ## Repository State
 
-- **Version**: 1.6.0
+- **Version**: 1.6.1
 - **Package**: `miie` (src layout: `src/miie/`)
-- **Tests**: 2775 passing (pytest), 2 pre-existing failures (architecture), 6 skipped
+- **Tests**: 2826 passing (pytest), 2 pre-existing failures (architecture), 6 skipped
 - **Python**: 3.10-3.12
 - **Platform**: **Windows-only** (no Linux/macOS CI, no cross-platform guarantees)
 - **License**: MIT
 
-## Current Status: Scientific Remediation COMPLETE — All 6 Fixes Applied
+## Current Status: Security Hardening COMPLETE
 
-End-to-end limitations investigation completed. 5 critical, 8 high, 7 medium issues identified. Immediate fixes applied: git timeout, disk cleanup, bare except cleanup, CLI knobs, network retry, token validation, API auth. War-room fixes applied: confidence band surfaced first, `--fail-on-low-confidence` flag, data quality section, evidence compression, monorepo hint. Unicode encoding fix (cp1252) applied. Platform locked to Windows-only. Scientific remediation: 6 audit findings resolved (severity extraction, KS p-value, Holm-Bonferroni, D-02 max correlation, effect sizes, vectorized Cliff's delta). 2775 tests passing, 2 pre-existing architecture failures, 6 skipped.
+End-to-end security remediation complete. 20 red team findings (7 High, 9 Medium, 4 Low) identified. All P0/P1 fixes applied. Ship gate: 19 PASS, 0 CRITICAL, 0 HIGH. 29 regression tests written and passing.
 
 ## Recent Work
 
-- **Scientific Remediation**: 6 audit findings resolved — severity extraction, KS p-value, Holm-Bonferroni, D-02 max correlation, effect sizes, vectorized Cliff's delta
-- **End-to-end hardening**: Full system limitations investigation + fixes applied
-- **Git timeout**: Added 60s timeout to all subprocess.run calls in git.py and ingestion.py
-- **Disk cleanup**: Implemented proper shutil.rmtree cleanup in GitCloner.clone() when cleanup_after=True
-- **Bare except cleanup**: Replaced 6 bare except: clauses with except Exception: across ingestion.py, git.py, cli/__init__.py, api/server.py
-- **CLI knobs**: Added --max-commits (5000 default), --workers (2 default), --timeout (60s default) to analyze command
-- **Network retry**: Added exponential backoff (3 attempts) for git clone failures
-- **Token validation**: Early GitHub token validation on analyze startup — fails fast with clear error
-- **API auth**: Added X-API-Key middleware for POST endpoints on FastAPI server
-- **Empty repo guard**: Early exit with clear error when repo has 0 commits
-- **War-room fixes**: Confidence band surfaced first, `--fail-on-low-confidence` flag, data quality section, evidence compression, monorepo hint — ALL COMPLETE
-- **Unicode encoding fix**: `─` box-drawing character replaced with ASCII `-` in premium_tui.py and brand_header.py to prevent cp1252 crash
-- **CLAUDE.md updated**: Platform locked to Windows-only, test count corrected to 2775, scientific remediation documented
-- **MEMORY.md updated**: Platform decision documented, recent work captured, scientific remediation recorded
-- **FTEMP-01**: Premium TUI transformation — 15 phases complete, 11 deliverable docs
-- **FTEMP-01**: 8 new modules: design_tokens, brand_header, semantic_colors, responsive, navigation, scientific_dashboard, accessibility, performance
-- **FTEMP-01**: Rewritten premium_tui.py using semantic_colors, design_tokens, responsive
-- **FTEMP-01**: CLI now supports TUI mode (`miie` with no args), command mode (`:` or `/`), 8 shell commands
-- **FTEMP-01**: 65 E2E tests (20 CLI usability + 45 E2E), all passing
-- **FTEMP-01**: All 8 modules verified importable, no circular dependencies
-- **Scalability Phases 1–5**: O(N) windowing 348x, parallel extraction 1.8x, memory __slots__ 2.1x, numstat bottleneck fixed
-- **Observation path fix**: CLI `_run_pipeline_rich` now uses ExtractionEngine + ObservationWindowBuilder + dispatcher.invoke_observations()
-- **Report encoding fix**: Added `encoding="utf-8"` to tempfile.NamedTemporaryFile in reporting/engine.py
-- **Detector triggers verified**: D-01 correctly detects drift when given per-commit observation data
-- **All 7 metrics functional**: M-01 through M-07 verified on 6 repos, confidence 1.0/1.0
-- **Full test suite**: 2775 passed, 6 skipped, 2 pre-existing failures
-- **OIAP-01**: Output Intelligence Audit — 14 reports, 39 gaps, ~52% intelligence hidden
-- **PGP-01**: Platform governance — 8 extension points, 5 API surfaces, 8 lifecycle phases
-- **RPP-01**: Scientific artifact evaluation — CITATION.cff created, OpenAPI exported
-- **IVP-01**: Industrial validation — 12 repos, 4 languages, CONDITIONALLY CERTIFIED up to ~16K commits
+- **Security Hardening (2026-07-25)**: Complete infrastructure remediation
+  - `.dockerignore` created — blocks `.env`, `.git/`, `tests/`, `archive/` from Docker layers
+  - `Dockerfile` hardened — non-root `miie` user, `HEALTHCHECK`, no `-e` pip flag
+  - `docker-compose.yml` fixed — API bound to `127.0.0.1:8000`, `MIIE_API_KEY` env var
+  - `requirements.txt` synced — upper bounds, `defusedxml` added
+  - API rate limiting — 30 req/min with `threading.Lock` (atomic)
+  - `JobStore` LRU eviction — 200 job cap prevents OOM
+  - CORS `allow_headers` locked to `X-API-Key`, `Content-Type` only
+  - CI/CD workflows pinned to full commit SHAs
+  - `setup.cfg` updated — mypy Python 3.12, strict error codes
+  - `git.py` token-in-URL fix — `GIT_ASKPASS` instead of embedding token
+  - Workspace ID sanitization — recursive `..` stripping + `is_relative_to()`
+  - `output_dir` validation — traversal + sensitive system dir blocklist
+  - `SECURITY.md` updated — v1.6.x support, full security architecture docs
+  - **P1 Git hook prevention**: `GIT_CONFIG_NOSYSTEM=1`, `GIT_TERMINAL_PROMPT=0` added to all git subprocess calls in ingestion.py, commit_extractor.py, engine.py, generator.py
+  - **29 regression tests** written and passing (`tests/regression/test_security_hardening.py`)
+  - **Ship gate**: 19 PASS, 0 CRITICAL, 0 HIGH — CLEAR TO SHIP
+  - **Commits pushed**: b02ab34 (hardening), 45418e0 (regression tests)
+- **Monitoring Setup Guide**: `docs/monitoring_setup_guide.md` — four golden signals, structured logging schema, alert rules
+- **TUI UX Enhancement**: In-process analysis, unified nav, help overlay, history, skippable splash
+- **Design Critique**: 8 TUI issues identified across Nielsen's heuristics, Gestalt, JTBD
+- **Scientific Remediation**: 6 audit findings resolved (severity extraction, KS p-value, Holm-Bonferroni, D-02 max correlation, effect sizes, vectorized Cliff's delta)
+- **Root directory cleanup**: 14 spec files deleted, red_team files moved to archive/, threats_cli.json moved to schemas/
+- **Tests expanded**: 2758 → 2826 (29 security regression + 32 earlier + 7 earlier)
+- **Tags pushed**: v1.6.0 and v1.6.1
 
 ## Frozen Core (DO NOT MODIFY)
 
@@ -108,8 +103,9 @@ src/miie/
 |-----------|---------|
 | `docs/` | 200+ documentation files (specs, guides, API docs) |
 | `docs/specifications/` | Numbered scientific/engineering specifications |
-| `tests/` | Test suite (2756 tests) |
+| `tests/` | Test suite (2826 tests) |
 | `tests/architecture/` | Layer dependency, package structure tests |
+| `tests/regression/` | Security hardening regression tests (29 tests) |
 | `benchmarks/` | Benchmark results + cloned repos |
 | `reports/` | Generated analysis reports (FFP-01 through SXP-01) |
 | `archive/` | Historical code and outputs |
@@ -134,7 +130,7 @@ src/miie/
 
 **Total Programs**: 11 complete
 **Total Reports**: 129
-**Current Tests**: 2775 passing
+**Current Tests**: 2826 passing
 
 ## Development Rules
 

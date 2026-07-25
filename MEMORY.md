@@ -4,7 +4,7 @@
 
 - **Version**: 1.6.1
 - **Package**: `miie` (src layout: `src/miie/`)
-- **Tests**: 2826 passing (pytest), 2 pre-existing failures (architecture), 6 skipped
+- **Tests**: 2849 passing (pytest), 2 pre-existing failures (architecture), 6 skipped
 - **Python**: 3.10-3.12
 - **Platform**: **Windows-only** (no Linux/macOS CI, no cross-platform guarantees)
 - **License**: MIT
@@ -15,7 +15,15 @@ End-to-end security remediation complete. 20 red team findings (7 High, 9 Medium
 
 ## Recent Work
 
-- **Security Hardening (2026-07-25)**: Complete infrastructure remediation
+- **CI/CD Security Hardening (2026-07-25)**: Pipeline attack surface audit + fixes
+  - ci.yml: Added `permissions: contents: read` (least privilege)
+  - release.yml: Removed unused `id-token: write` permission
+  - release.yml: Added `sha256sum` integrity verification for artifact downloads
+  - All actions already SHA-pinned (from prior session)
+  - No workflow injection, no pull_request_target, no self-hosted runners
+  - 23 CI/CD regression tests added (`tests/regression/test_cicd_security.py`)
+  - Audit script: `scripts/cicd_audit.py`
+  - **Audit verdict**: 0 CRITICAL, 0 HIGH, 0 MEDIUM, 0 LOW
   - `.dockerignore` created — blocks `.env`, `.git/`, `tests/`, `archive/` from Docker layers
   - `Dockerfile` hardened — non-root `miie` user, `HEALTHCHECK`, no `-e` pip flag
   - `docker-compose.yml` fixed — API bound to `127.0.0.1:8000`, `MIIE_API_KEY` env var
@@ -130,7 +138,7 @@ src/miie/
 
 **Total Programs**: 11 complete
 **Total Reports**: 129
-**Current Tests**: 2826 passing
+**Current Tests**: 2849 passing
 
 ## Development Rules
 

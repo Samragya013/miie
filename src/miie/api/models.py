@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 class AnalyzeRequest(BaseModel):
     """POST /v1/analyze request body (TFS §14.3)."""
 
-    repo: str = Field(..., min_length=1, description="Repository path or URL")
+    repo: str = Field(..., min_length=1, max_length=2048, description="Repository path or URL")
     since: Optional[str] = Field(None, description="ISO 8601 start date")
     until: Optional[str] = Field(None, description="ISO 8601 end date")
     metrics: List[str] = Field(default_factory=lambda: ["M-02", "M-06"])
@@ -29,7 +29,7 @@ class AnalyzeRequest(BaseModel):
     thresholds: Dict[str, Any] = Field(default_factory=dict)
     detector_weights: Dict[str, float] = Field(default_factory=lambda: {"D-01": 0.40, "D-02": 0.35, "D-03": 0.25})
     seed: int = 42
-    output_dir: str = "./output"
+    output_dir: str = Field(default="./output", max_length=1024)
 
 
 class BenchmarkRequest(BaseModel):

@@ -115,33 +115,29 @@ class TestGitCloner:
 
     @patch("miie.utils.git.subprocess.run")
     def test_clone_auth_token_injected_in_url(self, mock_run):
-        """Auth token should be injected into the clone URL for HTTPS."""
+        """Auth token should NOT be in the clone URL (uses GIT_ASKPASS instead)."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         cloner = GitCloner(auth_token="ghp_test123")
 
-        # Mock tempfile.mkdtemp to return a known path
-        with patch("miie.utils.git.tempfile.mkdtemp", return_value="/tmp/test_clone"):
-            with patch("miie.utils.git.Path") as MockPath:
-                mock_path = MagicMock()
-                mock_path.__str__ = lambda self: "/tmp/test_clone"
-                MockPath.return_value = mock_path
-                mock_path.mkdir = MagicMock()
-                mock_path.exists.return_value = False
+        try:
+            cloner.clone(
+                "https://github.com/owner/repo",
+                target_dir=Path("/tmp/test_clone"),
+            )
+        except Exception:
+            pass  # We just want to inspect the call args
 
-                try:
-                    cloner.clone(
-                        "https://github.com/owner/repo",
-                        target_dir=Path("/tmp/test_clone"),
-                    )
-                except Exception:
-                    pass  # We just want to inspect the call args
-
-        # Check that the token was injected
+        # Check that the token is NOT in the URL (security fix)
         call_args = mock_run.call_args
         if call_args:
             cmd = call_args[0][0]
             clone_url = cmd[-2] if len(cmd) >= 2 else ""
-            assert "ghp_test123@" in clone_url or "ghp_test123" in str(cmd)
+            assert "ghp_test123@" not in clone_url, "Token must not be embedded in URL"
+            # Token should be supplied via GIT_ASKPASS env var
+            kwargs = call_args[1] if len(call_args) > 1 else {}
+            env = kwargs.get("env")
+            assert env is not None, "subprocess should be called with env parameter"
+            assert "GIT_ASKPASS" in env, "GIT_ASKPASS should be set in env"
 
     @patch("miie.utils.git.subprocess.run")
     def test_clone_no_token_no_injection(self, mock_run):

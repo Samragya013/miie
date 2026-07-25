@@ -27,7 +27,6 @@ test-all:
 	pytest tests/ -x -q --tb=short
 
 security:
-	pip-audit --ignore-vulnerabilities
-	safety check
+	pip-audit
 
 check: lint typecheck test-all security

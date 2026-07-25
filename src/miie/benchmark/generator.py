@@ -3,6 +3,7 @@ Implements the IDatasetGenerator interface for generating synthetic benchmark da
 """
 
 import json
+import os
 import random
 import subprocess
 import tempfile
@@ -12,6 +13,14 @@ from typing import List, Optional
 
 from miie.contracts.interfaces import IDatasetGenerator
 from miie.schemas.serialization import json_dumps
+
+# Safe environment for git subprocess calls — disables hooks and prompts
+_GIT_SAFE_ENV = {
+    **os.environ,
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_TERMINAL_PROMPT": "0",
+    "GIT_EDITOR": ":",
+}
 
 
 class BenchmarkDatasetGenerator(IDatasetGenerator):
@@ -55,6 +64,7 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
             except OSError:
                 # Handle collision with uuid suffix
                 import uuid
+
                 candidate_dir = output_dir / f"candidate_{candidate_index:03d}_{uuid.uuid4().hex[:8]}"
                 candidate_dir.mkdir(parents=True, exist_ok=True)
             generated_paths.append(candidate_dir)
@@ -74,6 +84,7 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
             except Exception:
                 # Clean up on failure
                 import shutil
+
                 if candidate_dir.exists():
                     shutil.rmtree(candidate_dir, ignore_errors=True)
                 raise
@@ -91,19 +102,23 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
         cmd = ["git", "init"]
         if shallow_depth > 0:
             cmd.extend(["--shallow-since=2020-01-01"])
-        subprocess.run(cmd, cwd=repo_path, check=True, capture_output=True)
+        subprocess.run(cmd, cwd=repo_path, check=True, capture_output=True, timeout=30, env=_GIT_SAFE_ENV)
         # Configure git user (required for commits)
         subprocess.run(
             ["git", "config", "user.name", "MIIE Generator"],
             cwd=repo_path,
             check=True,
             capture_output=True,
+            timeout=10,
+            env=_GIT_SAFE_ENV,
         )
         subprocess.run(
             ["git", "config", "user.email", "miie@example.com"],
             cwd=repo_path,
             check=True,
             capture_output=True,
+            timeout=10,
+            env=_GIT_SAFE_ENV,
         )
 
     def _generate_metadata(self, candidate_index: int, dataset_type: str, base_seed: Optional[int]) -> dict:
@@ -270,7 +285,7 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
         Assumes files are absolute paths.
         """
         rel_files = [str(Path(f).relative_to(repo_path)).replace("\\", "/") for f in files]
-        result_add = subprocess.run(["git", "add"] + rel_files, cwd=repo_path, capture_output=True)
+        result_add = subprocess.run(["git", "add"] + rel_files, cwd=repo_path, capture_output=True, timeout=30, env=_GIT_SAFE_ENV)
         if result_add.returncode != 0:
             raise subprocess.CalledProcessError(
                 result_add.returncode,
@@ -278,7 +293,7 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
                 result_add.stdout,
                 result_add.stderr,
             )
-        result_commit = subprocess.run(["git", "commit", "-m", message], cwd=repo_path, capture_output=True)
+        result_commit = subprocess.run(["git", "commit", "-m", message], cwd=repo_path, capture_output=True, timeout=30, env=_GIT_SAFE_ENV)
         if result_commit.returncode != 0:
             raise subprocess.CalledProcessError(
                 result_commit.returncode,

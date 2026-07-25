@@ -131,6 +131,7 @@ class GitCloner:
             ValueError: If URL is invalid
             RuntimeError: If git clone fails after all retries
         """
+
         def _progress(msg):
             if on_progress:
                 on_progress(msg)
@@ -148,14 +149,26 @@ class GitCloner:
             target_dir = Path(target_dir)
             target_dir.mkdir(parents=True, exist_ok=True)
 
-        # Prepare git clone command
+        # Prepare git clone command — never embed token in URL
+        # Use GIT_ASKPASS to supply credentials safely (avoids token-in-URL leak)
         clone_url = url
+        git_askpass_env = None
         if self.auth_token:
-            # Use token for authentication
             if url.startswith("https://"):
-                clone_url = url.replace("https://", f"https://{self.auth_token}@")
+                clone_url = url.replace("https://", "https://git@")
             elif url.startswith("http://"):
-                clone_url = url.replace("http://", f"https://{self.auth_token}@")
+                clone_url = url.replace("http://", "https://git@")
+            # Create a temp script that returns the token for git credential prompts
+            import os
+            import stat
+
+            askpass_script = Path(tempfile.mktemp(suffix=".cmd" if os.name == "nt" else ".sh"))
+            if os.name == "nt":
+                askpass_script.write_text(f"@echo {self.auth_token}\n", encoding="utf-8")
+            else:
+                askpass_script.write_text(f"#!/bin/sh\necho {self.auth_token}\n", encoding="utf-8")
+                os.chmod(askpass_script, stat.S_IRUSR | stat.S_IXUSR)
+            git_askpass_env = {"GIT_ASKPASS": str(askpass_script)}
 
         # Build git clone command
         cmd = ["git", "clone"]
@@ -167,6 +180,11 @@ class GitCloner:
 
         # Execute git clone with retry and timeout
         last_error = None
+        clone_env = None
+        if git_askpass_env:
+            import os
+
+            clone_env = {**os.environ, **git_askpass_env}
         for attempt in range(MAX_RETRIES):
             try:
                 _result = subprocess.run(
@@ -177,6 +195,7 @@ class GitCloner:
                     errors="replace",
                     check=True,
                     timeout=GIT_TIMEOUT,
+                    env=clone_env,
                 )
                 # Clone succeeded
                 if attempt > 0:
@@ -185,9 +204,7 @@ class GitCloner:
                 break
             except subprocess.TimeoutExpired as e:
                 last_error = e
-                _progress(
-                    f"Clone timed out after {GIT_TIMEOUT}s (attempt {attempt+1}/{MAX_RETRIES})"
-                )
+                _progress(f"Clone timed out after {GIT_TIMEOUT}s (attempt {attempt+1}/{MAX_RETRIES})")
                 # Clean up partial clone on timeout
                 if target_dir.exists():
                     shutil.rmtree(target_dir, ignore_errors=True)
@@ -201,16 +218,12 @@ class GitCloner:
                 error_msg = f"Failed to clone {url}\n"
                 if e.stderr:
                     error_msg += f"Git error: {e.stderr}"
-                _progress(
-                    f"Clone failed (attempt {attempt+1}/{MAX_RETRIES}): {e}"
-                )
+                _progress(f"Clone failed (attempt {attempt+1}/{MAX_RETRIES}): {e}")
                 if attempt < MAX_RETRIES - 1:
                     time.sleep(RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)])
             except Exception as e:
                 last_error = e
-                _progress(
-                    f"Clone error (attempt {attempt+1}/{MAX_RETRIES}): {e}"
-                )
+                _progress(f"Clone error (attempt {attempt+1}/{MAX_RETRIES}): {e}")
                 if attempt < MAX_RETRIES - 1:
                     time.sleep(RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)])
         else:
@@ -219,6 +232,13 @@ class GitCloner:
             if last_error:
                 error_msg += f": {last_error}"
             raise RuntimeError(error_msg)
+
+        # Cleanup GIT_ASKPASS script
+        if git_askpass_env and git_askpass_env.get("GIT_ASKPASS"):
+            try:
+                Path(git_askpass_env["GIT_ASKPASS"]).unlink(missing_ok=True)
+            except Exception:
+                pass
 
         # Setup cleanup if requested
         if cleanup_after:

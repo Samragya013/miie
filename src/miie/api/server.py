@@ -5,9 +5,12 @@ Implements the 6 frozen endpoints per TFS §14.3.
 
 from __future__ import annotations
 
+import collections
 import hmac
 import logging
 import os
+import threading
+import time
 from typing import Optional
 
 import uvicorn
@@ -45,13 +48,41 @@ app = FastAPI(
     description="Measurement Integrity Intelligence Engine",
 )
 
+
+# ---------------------------------------------------------------------------
+# Rate Limiting (in-memory sliding window, thread-safe)
+# ---------------------------------------------------------------------------
+class _RateLimiter:
+    """Simple sliding-window rate limiter with thread safety."""
+
+    def __init__(self, max_requests: int = 30, window_seconds: int = 60):
+        self.max_requests = max_requests
+        self.window = window_seconds
+        self._hits: collections.deque = collections.deque()
+        self._lock = threading.Lock()
+
+    def is_allowed(self) -> bool:
+        now = time.time()
+        cutoff = now - self.window
+        with self._lock:
+            # Evict stale entries
+            while self._hits and self._hits[0] < cutoff:
+                self._hits.popleft()
+            if len(self._hits) >= self.max_requests:
+                return False
+            self._hits.append(now)
+            return True
+
+
+_rate_limiter = _RateLimiter(max_requests=30, window_seconds=60)
+
 # CORS: restrict to localhost only (Issue 32)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1", "http://localhost"],
     allow_credentials=True,
     allow_methods=["GET", "POST"],
-    allow_headers=["*"],
+    allow_headers=["X-API-Key", "Content-Type"],
 )
 
 
@@ -69,6 +100,18 @@ async def authenticate_api_key(request: Request, call_next):
         response = await call_next(request)
         _add_security_headers(response)
         return response
+
+    # Rate limiting (per-process sliding window)
+    if not _rate_limiter.is_allowed():
+        return JSONResponse(
+            status_code=429,
+            content={
+                "type": "https://miie.dev/errors/rate-limited",
+                "title": "Too Many Requests",
+                "status": 429,
+                "detail": "Rate limit exceeded. Try again in a minute.",
+            },
+        )
 
     # If no API key configured, allow all (dev mode)
     if not _API_KEY:
@@ -189,10 +232,11 @@ def get_job_status(job_id: str):
     if status == "failed":
         error = job.get("error", {})
         # Sanitize: only return safe fields (type, title, status, detail)
-        safe_error = {
-            k: v for k, v in error.items()
-            if k in ("type", "title", "status", "detail")
-        } if isinstance(error, dict) else {}
+        safe_error = (
+            {k: v for k, v in error.items() if k in ("type", "title", "status", "detail")}
+            if isinstance(error, dict)
+            else {}
+        )
         raise HTTPException(
             status_code=500,
             detail=(

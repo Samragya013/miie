@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 import subprocess
 from pathlib import Path
 from typing import Optional, Union
@@ -11,6 +12,17 @@ from miie.utils.git import GIT_TIMEOUT, GitCloner, GitURLParser
 from miie.utils.workspace import detect_workspace
 
 logger = logging.getLogger(__name__)
+
+# Safe environment for git subprocess calls — disables system gitconfig
+# and prevents git hooks from executing during analysis
+_GIT_SAFE_ENV = {
+    **os.environ,
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_TERMINAL_PROMPT": "0",
+    "GIT_EDITOR": ":",
+    "GIT_SEQUENCE_EDITOR": ":",
+    "GIT_MERGE_AUTOEDIT": "no",
+}
 
 
 def validate_repository(repo_path: Union[str, Path]) -> None:
@@ -299,6 +311,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 errors="replace",
                 check=True,
                 timeout=GIT_TIMEOUT,
+                env=_GIT_SAFE_ENV,
             )
             count_str = result.stdout.strip()
             return int(count_str)
@@ -329,6 +342,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 errors="replace",
                 check=True,
                 timeout=GIT_TIMEOUT,
+                env=_GIT_SAFE_ENV,
             )
             timestamp_str = result.stdout.strip().split("\n")[0] if result.stdout.strip() else None
             if timestamp_str is None:
@@ -360,6 +374,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 errors="replace",
                 check=True,
                 timeout=GIT_TIMEOUT,
+                env=_GIT_SAFE_ENV,
             )
             timestamp_str = result.stdout.strip()
             if not timestamp_str:
@@ -394,6 +409,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 errors="replace",
                 check=True,
                 timeout=GIT_TIMEOUT,
+                env=_GIT_SAFE_ENV,
             )
             # Each line is a contributor, empty output means 0
             lines = [line for line in result.stdout.strip().split("\n") if line]

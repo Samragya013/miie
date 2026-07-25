@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import datetime
 import hashlib
+import os
 import re
 import subprocess
 from typing import Any, Dict, List, Optional, Tuple
@@ -54,6 +55,14 @@ _BOT_PATTERNS: Tuple[str, ...] = (
     "ci-bot",
     "deploy-bot",
 )
+
+# Safe environment for git subprocess calls — disables hooks and prompts
+_GIT_SAFE_ENV = {
+    **os.environ,
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_TERMINAL_PROMPT": "0",
+    "GIT_EDITOR": ":",
+}
 
 # Regex for parsing shortstat line
 _INSERTIONS_RE = re.compile(r"(\d+)\s+insertion")
@@ -281,6 +290,8 @@ class CommitExtractor:
                 encoding="utf-8",
                 errors="replace",
                 check=True,
+                timeout=120,
+                env=_GIT_SAFE_ENV,
             )
         except FileNotFoundError:
             raise ExtractionError("git executable not found")

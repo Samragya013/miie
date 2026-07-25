@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, List, Optional, Tuple
@@ -37,6 +38,13 @@ from miie.processing.observation.store import ObservationStore
 from miie.schemas.models import MetricDataFrame, RepositoryContext
 
 logger = logging.getLogger(__name__)
+
+# Safe environment for git subprocess calls — disables hooks and prompts
+_GIT_SAFE_ENV = {
+    **os.environ,
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_TERMINAL_PROMPT": "0",
+}
 
 
 class ExtractionEngine:
@@ -379,6 +387,7 @@ class ExtractionEngine:
                 ["git", "remote", "get-url", "origin"],
                 capture_output=True, text=True, encoding="utf-8",
                 timeout=10, cwd=str(context.local_path),
+                env=_GIT_SAFE_ENV,
             )
             if result.returncode == 0:
                 url = result.stdout.strip()

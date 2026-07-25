@@ -8,14 +8,27 @@ services:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
     entrypoint: ["miie"]
     command: ["--help"]
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
 
   api:
     build: .
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./output:/app/output
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - MIIE_API_KEY=${MIIE_API_KEY}
     entrypoint: ["miie-api"]
-    command: ["--host", "0.0.0.0", "--port", "8000"]
+    command: ["--host", "127.0.0.1", "--port", "8000"]
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G

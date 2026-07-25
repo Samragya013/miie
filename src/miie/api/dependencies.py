@@ -23,16 +23,24 @@ logger = logging.getLogger(__name__)
 
 
 class JobStore:
-    """In-memory job storage (V1)."""
+    """In-memory job storage (V1) with LRU eviction at 200 jobs."""
+
+    MAX_JOBS = 200
 
     def __init__(self) -> None:
         self._jobs: Dict[str, Dict[str, Any]] = {}
         self._lock = threading.Lock()
+        self._insertion_order: list[str] = []
 
     def create_job(self, job_type: str, params: Dict[str, Any]) -> str:
         job_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
         with self._lock:
+            # LRU eviction when at capacity
+            while len(self._jobs) >= self.MAX_JOBS:
+                oldest_id = self._insertion_order.pop(0)
+                self._jobs.pop(oldest_id, None)
+                logger.debug("Evicted oldest job %s (capacity %d)", oldest_id, self.MAX_JOBS)
             self._jobs[job_id] = {
                 "job_id": job_id,
                 "job_type": job_type,
@@ -45,6 +53,7 @@ class JobStore:
                 "result": None,
                 "error": None,
             }
+            self._insertion_order.append(job_id)
         return job_id
 
     def update_status(
@@ -121,9 +130,50 @@ def _run_analyze_job(job_id: str, request: AnalyzeRequest) -> None:
                 },
             )
             return
-        # Block access to sensitive system directories
-        sensitive = {"/etc", "/proc", "/sys", "/dev", str(Path.home() / ".ssh")}
-        if any(str(repo_path).startswith(s) for s in sensitive):
+        # Validate output_dir — prevent path traversal
+        raw_output = request.output_dir.strip()
+        if ".." in raw_output or re.search(r"[<>\"|?*]", raw_output):
+            store.set_error(
+                job_id,
+                {
+                    "type": "https://miie.dev/errors/invalid-output-dir",
+                    "title": "Invalid Output Directory",
+                    "status": 400,
+                    "detail": "Output directory contains invalid characters or traversal sequences.",
+                },
+            )
+            return
+        output_path = Path(raw_output).resolve()
+        # Block writes to sensitive system directories
+        sensitive_output = {"/etc", "/proc", "/sys", "/dev", "/bin", "/sbin", "/usr"}
+        if any(str(output_path).startswith(s) for s in sensitive_output):
+            store.set_error(
+                job_id,
+                {
+                    "type": "https://miie.dev/errors/invalid-output-dir",
+                    "title": "Invalid Output Directory",
+                    "status": 400,
+                    "detail": "Output directory points to a restricted system directory.",
+                },
+            )
+            return
+        # Block access to sensitive system directories (Windows + Linux)
+        home = Path.home()
+        sensitive = {
+            "/etc",
+            "/proc",
+            "/sys",
+            "/dev",
+            str(home / ".ssh"),
+            str(home / ".aws"),
+            str(home / ".gcp"),
+            str(home / ".azure"),
+            str(home / ".kube"),
+            str(Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Credentials"),
+            str(Path(os.environ.get("USERPROFILE", "")) / ".ssh"),
+            str(Path(os.environ.get("USERPROFILE", "")) / ".aws"),
+        }
+        if any(str(repo_path).startswith(s) for s in sensitive if s):
             store.set_error(
                 job_id,
                 {

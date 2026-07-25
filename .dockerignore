@@ -1,0 +1,45 @@
+# Docker build context exclusions
+# Prevents .env (with tokens), .git history, tests, and archives from entering Docker layers
+
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+dist/
+build/
+.mypy_cache
+.pytest_cache
+
+# Project directories not needed in image
+tests/
+archive/
+benchmarks/
+output/
+tmp_output/
+tmp_output_ingestion/
+reports/
+scripts/
+docs/
+schemas/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+Desktop.ini
+
+# Dev / CI
+.pre-commit-config.yaml
+Makefile
+*.md
+!README.md
+session.log

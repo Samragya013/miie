@@ -25,10 +25,14 @@ class WorkspacePersistence:
         """Sanitize workspace_id to prevent path traversal.
 
         Strips traversal sequences and non-alphanumeric characters (except - and _).
+        Uses iterative replacement to handle encoded sequences like '....//'.
         """
         import re
 
-        safe = workspace_id.replace("..", "_")
+        safe = workspace_id
+        # Iteratively strip all .. sequences (handles ....// → traversal attempt)
+        while ".." in safe:
+            safe = safe.replace("..", "_")
         safe = safe.replace("/", "_").replace("\\", "_")
         safe = re.sub(r"[^a-zA-Z0-9_-]", "_", safe)
         return safe
@@ -49,6 +53,9 @@ class WorkspacePersistence:
         workspace_id = workspace.state.workspace_id
         safe_id = self._sanitize_id(workspace_id)
         workspace_dir = self.base_dir / safe_id
+        # Defense in depth: verify path stays within base_dir
+        if not workspace_dir.resolve().is_relative_to(self.base_dir.resolve()):
+            raise ValueError(f"Workspace ID resolves outside base directory: {workspace_id}")
         workspace_dir.mkdir(parents=True, exist_ok=True)
 
         # Save main state
@@ -77,6 +84,9 @@ class WorkspacePersistence:
         """
         safe_id = self._sanitize_id(workspace_id)
         workspace_dir = self.base_dir / safe_id
+        # Defense in depth: verify path stays within base_dir
+        if not workspace_dir.resolve().is_relative_to(self.base_dir.resolve()):
+            return None
         state_file = workspace_dir / "workspace.json"
 
         if not state_file.exists():
@@ -134,6 +144,9 @@ class WorkspacePersistence:
 
         safe_id = self._sanitize_id(workspace_id)
         workspace_dir = self.base_dir / safe_id
+        # Verify resolved path is within base_dir (defense in depth)
+        if not workspace_dir.resolve().is_relative_to(self.base_dir.resolve()):
+            raise ValueError(f"Workspace ID resolves outside base directory: {workspace_id}")
         if workspace_dir.exists():
             try:
                 shutil.rmtree(workspace_dir)
@@ -146,6 +159,9 @@ class WorkspacePersistence:
         """Get bookmarks for a workspace."""
         safe_id = self._sanitize_id(workspace_id)
         workspace_dir = self.base_dir / safe_id
+        # Defense in depth: verify path stays within base_dir
+        if not workspace_dir.resolve().is_relative_to(self.base_dir.resolve()):
+            return []
         bookmarks_file = workspace_dir / "bookmarks.json"
 
         if not bookmarks_file.exists():

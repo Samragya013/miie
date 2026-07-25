@@ -96,6 +96,11 @@ KNOWN_CIRCULAR_DEPS = {
     # This creates a 3-hop cycle: schemas -> processing -> contracts -> schemas.
     # Justification: Backward-compat bridge; requires ADR to resolve.
     ("schemas", "contracts"),
+    # application <-> workspace: interactive.py imports WorkspaceEngine/WorkspacePersistence
+    # for the post-analysis workspace. Workspace reads application outputs for views.
+    # Justification: Workspace is the post-analysis persistence layer.
+    ("application", "workspace"),
+    ("workspace", "application"),
 }
 
 
@@ -195,7 +200,7 @@ def get_imports_from_file(file_path: Path, self_package: str | None = None) -> s
         self_package: The package this file belongs to (to filter self-imports)
     """
     try:
-        tree = ast.parse(file_path.read_text())
+        tree = ast.parse(file_path.read_text(encoding="utf-8"))
     except (SyntaxError, UnicodeDecodeError):
         return set()
 

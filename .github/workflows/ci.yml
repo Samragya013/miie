@@ -42,6 +42,7 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: ${{ matrix.python-version }}
+      - run: pip install pytest
       - run: pip install -e .
       - run: pytest tests/unit/ tests/schema/ tests/contract/ tests/architecture/ -x -q --tb=short
 
@@ -52,6 +53,7 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.12'
+      - run: pip install pytest
       - run: pip install -e .
       - run: pytest tests/integration/ -x -q --tb=short
 
@@ -62,6 +64,7 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.12'
+      - run: pip install pytest
       - run: pip install -e .
       - run: pytest tests/regression/ tests/workflow/ -x -q --tb=short
 
@@ -82,5 +85,6 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.12'
+      - run: pip install pytest
       - run: pip install -e .
       - run: pytest tests/unit/test_d01_distribution_drift.py tests/unit/test_d02_correlation_breakdown.py tests/unit/test_d03_threshold_compression.py -x -q --tb=short

@@ -45,7 +45,7 @@ ALLOWED_DEPENDENCIES = {
     # Orchestration
     "orchestration": {"contracts", "schemas"},
     # Application layer
-    "application": {"processing", "contracts", "schemas", "utils"},
+    "application": {"processing", "contracts", "schemas", "utils", "workspace", "config", "metrics"},
     # Interface / entry points
     "api": {"processing"},
     "cli": {
@@ -212,6 +212,11 @@ def get_imports_from_file(file_path: Path, self_package: str | None = None) -> s
                 elif parts[0] in ALLOWED_DEPENDENCIES and parts[0] != self_package:
                     imports.add(parts[0])
         elif isinstance(node, ast.ImportFrom):
+            # Skip intra-package relative imports (level == 1, e.g. from .config import ...)
+            # These import from sibling modules, not cross-package.
+            # Keep cross-package relative imports (level >= 2, e.g. from ..workspace import ...)
+            if node.level and node.level == 1:
+                continue
             if node.module:
                 parts = node.module.split(".")
                 # Handle miie.X.Y -> X

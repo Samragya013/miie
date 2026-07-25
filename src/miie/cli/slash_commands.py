@@ -145,7 +145,7 @@ def cmd_export(args: list[str], context: dict) -> bool:
 @command("/config", "View or edit configuration", "/config [key] [value]")
 def cmd_config(args: list[str], context: dict) -> bool:
     """View or modify configuration."""
-    from .interactive import load_config, save_config, CONFIG_FILE
+    from .interactive import CONFIG_FILE, load_config, save_config
 
     config = load_config()
 

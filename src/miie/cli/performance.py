@@ -22,6 +22,7 @@ from rich.text import Text
 @dataclass
 class RenderBudget:
     """Track TUI render time to stay within budget."""
+
     _budget_ms: float = 50.0  # 50ms total budget for TUI renders
     _spent_ms: float = 0.0
     _render_count: int = 0
@@ -61,6 +62,7 @@ class RenderBudget:
 
 
 # ── Table Reuse Pool ──────────────────────────────────────────────────
+
 
 class TablePool:
     """Reuse Rich Table objects to reduce allocation overhead."""
@@ -107,9 +109,11 @@ class TablePool:
 
 # ── Progressive Disclosure ────────────────────────────────────────────
 
+
 @dataclass
 class DisclosureLevel:
     """Controls what detail level to show based on terminal width."""
+
     width: int = 80
     show_timing: bool = True
     show_detail: bool = True
@@ -121,9 +125,13 @@ class DisclosureLevel:
     def for_width(cls, width: int) -> DisclosureLevel:
         """Create disclosure level based on terminal width."""
         if width < 60:
-            return cls(width=width, show_timing=False, show_detail=False, show_bars=False, show_purpose=False, max_rows=10)
+            return cls(
+                width=width, show_timing=False, show_detail=False, show_bars=False, show_purpose=False, max_rows=10
+            )
         elif width < 80:
-            return cls(width=width, show_timing=True, show_detail=False, show_bars=True, show_purpose=False, max_rows=20)
+            return cls(
+                width=width, show_timing=True, show_detail=False, show_bars=True, show_purpose=False, max_rows=20
+            )
         elif width < 100:
             return cls(width=width, show_timing=True, show_detail=True, show_bars=True, show_purpose=False, max_rows=30)
         else:
@@ -131,6 +139,7 @@ class DisclosureLevel:
 
 
 # ── String Builder ────────────────────────────────────────────────────
+
 
 class StringBuilder:
     """Efficient string building for large outputs."""
@@ -156,6 +165,7 @@ class StringBuilder:
 
 
 # ── Truncation ────────────────────────────────────────────────────────
+
 
 def truncate(text: str, max_width: int, suffix: str = "...") -> str:
     """Truncate text with ellipsis, preserving ANSI codes."""

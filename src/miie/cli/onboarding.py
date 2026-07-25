@@ -185,8 +185,7 @@ def run_first_analysis_walkthrough() -> None:
         if result.returncode == 0:
             success_panel(
                 "Analysis Complete",
-                "Your first analysis has finished successfully!\n"
-                "  Check the output directory for results.",
+                "Your first analysis has finished successfully!\n" "  Check the output directory for results.",
             )
         else:
             console.print(f"  [yellow]Analysis completed with warnings.[/yellow]")
@@ -213,8 +212,7 @@ def run_onboarding() -> bool:
     console.print()
     info_panel(
         "Welcome to MIIE!",
-        "Measurement Integrity Intelligence Engine v1.6.0\n"
-        "Let's get you set up in just a few steps.",
+        "Measurement Integrity Intelligence Engine v1.6.0\n" "Let's get you set up in just a few steps.",
     )
     console.print()
 

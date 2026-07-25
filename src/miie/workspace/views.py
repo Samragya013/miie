@@ -103,7 +103,11 @@ class ExecutiveSummary:
             detector_outputs = getattr(dr, "detector_outputs", {}) or {}
             if detector_outputs:
                 lines.append("Detector Overview:")
-                det_names = {"D-01": "Distribution Drift", "D-02": "Correlation Breakdown", "D-03": "Threshold Compression"}
+                det_names = {
+                    "D-01": "Distribution Drift",
+                    "D-02": "Correlation Breakdown",
+                    "D-03": "Threshold Compression",
+                }
                 for det_id in sorted(detector_outputs.keys()):
                     det_data = detector_outputs[det_id]
                     name = det_names.get(det_id, det_id)
@@ -293,7 +297,10 @@ class MetricView(ExplorationView):
         lines.append("")
 
         for mid in metrics:
-            info = self.METRIC_INFO.get(mid, {"name": mid, "purpose": "Unknown", "method": "Unknown", "data_source": "Unknown", "available": False})
+            info = self.METRIC_INFO.get(
+                mid,
+                {"name": mid, "purpose": "Unknown", "method": "Unknown", "data_source": "Unknown", "available": False},
+            )
             lines.append(f"  {mid} — {info['name']}")
             lines.append(f"    Purpose: {info['purpose']}")
             lines.append(f"    Method: {info['method']}")
@@ -421,7 +428,9 @@ class DetectorView(ExplorationView):
 
         for det_id in sorted(detector_outputs.keys()):
             det_data = detector_outputs[det_id]
-            info = self.DETECTOR_INFO.get(det_id, {"name": det_id, "method": "Unknown", "assumptions": [], "limitations": [], "reference": ""})
+            info = self.DETECTOR_INFO.get(
+                det_id, {"name": det_id, "method": "Unknown", "assumptions": [], "limitations": [], "reference": ""}
+            )
 
             lines.append(f"  {det_id}: {info['name']}")
             lines.append(f"    Method: {info['method']}")
@@ -683,7 +692,14 @@ class ConfidenceView(ExplorationView):
         if factors:
             lines.append("Confidence Factor Breakdown (C_s = beta_1 * beta_2 * ... * beta_6):")
             lines.append("")
-            for fk in ["sample_size", "variance", "missing_data", "window_balance", "detector_success", "observation_quality"]:
+            for fk in [
+                "sample_size",
+                "variance",
+                "missing_data",
+                "window_balance",
+                "detector_success",
+                "observation_quality",
+            ]:
                 fv = factors.get(fk)
                 if fv is not None:
                     label, formula = self.FACTOR_LABELS.get(fk, (fk, ""))
@@ -697,7 +713,9 @@ class ConfidenceView(ExplorationView):
             min_factor = min(factors.values()) if factors else 0
             min_key = min(factors, key=factors.get) if factors else "none"
             lines.append(f"  Limiting Factor: {min_key} = {min_factor:.4f}")
-            lines.append(f"  Interpretation: Confidence is {'limited' if min_factor < 0.5 else 'supported'} by {min_key}")
+            lines.append(
+                f"  Interpretation: Confidence is {'limited' if min_factor < 0.5 else 'supported'} by {min_key}"
+            )
         lines.append("")
 
         # Confidence interpretation

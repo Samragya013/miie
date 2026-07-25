@@ -20,9 +20,9 @@ from fastapi.responses import JSONResponse
 
 from .. import __version__
 from .dependencies import (
+    _job_executor,
     _run_analyze_job,
     _run_benchmark_job,
-    _job_executor,
     get_job_store,
     get_uptime,
 )

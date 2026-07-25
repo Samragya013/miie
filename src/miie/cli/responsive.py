@@ -31,11 +31,12 @@ from typing import Any
 
 class WidthCategory(Enum):
     """Terminal width categories for layout selection."""
-    ULTRA_NARROW = "ultra_narrow"   # < 60 cols
-    NARROW = "narrow"               # 60-79 cols
-    STANDARD = "standard"           # 80-99 cols
-    WIDE = "wide"                   # 100-119 cols
-    ULTRA_WIDE = "ultra_wide"       # >= 120 cols
+
+    ULTRA_NARROW = "ultra_narrow"  # < 60 cols
+    NARROW = "narrow"  # 60-79 cols
+    STANDARD = "standard"  # 80-99 cols
+    WIDE = "wide"  # 100-119 cols
+    ULTRA_WIDE = "ultra_wide"  # >= 120 cols
 
 
 @dataclass
@@ -51,6 +52,7 @@ class LayoutConfig:
         max_detail_length: Truncation length for detail strings
         section_width: Width for section dividers
     """
+
     category: WidthCategory
     score_bar_width: int
     show_detail: bool
@@ -119,6 +121,7 @@ LAYOUTS: dict[WidthCategory, LayoutConfig] = {
 
 # ── Layout Engine ──────────────────────────────────────────────────────
 
+
 def get_terminal_width() -> int:
     """Get terminal width with safe fallback."""
     try:
@@ -163,6 +166,7 @@ def get_layout(columns: int | None = None) -> LayoutConfig:
 
 
 # ── Adaptive Table Builder ────────────────────────────────────────────
+
 
 def adapt_table_columns(
     columns: list[tuple[str, int]],
@@ -227,6 +231,7 @@ def adapt_table_columns(
 
 
 # ── Content Truncation ────────────────────────────────────────────────
+
 
 def truncate(text: str, max_length: int, suffix: str = "...") -> str:
     """Truncate text to max_length, adding suffix if truncated.

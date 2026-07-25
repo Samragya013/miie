@@ -174,11 +174,10 @@ class ApplicationService:
 
             # Stage 4: Windowing via ObservationWindowBuilder
             t4 = time.perf_counter()
-            from ..processing.observation.window_builder import ObservationWindowBuilder
             from ..processing.observation.models import WindowConfig
+            from ..processing.observation.window_builder import ObservationWindowBuilder
 
-            strategy_map = {"time": "temporal", "commit": "commit_count",
-                            "release": "temporal", "custom": "custom"}
+            strategy_map = {"time": "temporal", "commit": "commit_count", "release": "temporal", "custom": "custom"}
             obs_strategy = strategy_map.get(window_strategy, "temporal")
             window_config = WindowConfig(
                 strategy=obs_strategy,
@@ -197,13 +196,14 @@ class ApplicationService:
 
             # Convert observation windows to legacy WindowDefinitions for scoring/evidence
             from ..schemas.models import WindowDefinition
+
             windows = []
             for ow in observation_windows:
                 wd = WindowDefinition(
                     window_id=ow.window_id,
-                    start_date=ow.start_boundary[:10] if hasattr(ow, 'start_boundary') and ow.start_boundary else None,
-                    end_date=ow.end_boundary[:10] if hasattr(ow, 'end_boundary') and ow.end_boundary else None,
-                    commits=len(ow.observations) if hasattr(ow, 'observations') else 0,
+                    start_date=ow.start_boundary[:10] if hasattr(ow, "start_boundary") and ow.start_boundary else None,
+                    end_date=ow.end_boundary[:10] if hasattr(ow, "end_boundary") and ow.end_boundary else None,
+                    commits=len(ow.observations) if hasattr(ow, "observations") else 0,
                     strategy=obs_strategy,
                     size_config={"size": window_size},
                 )

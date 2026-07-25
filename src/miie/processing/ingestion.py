@@ -172,8 +172,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
         # Empty repo guard
         if total_commits == 0:
             raise IngestionError(
-                f"Repository has 0 commits: {path_obj}. "
-                "MIIE requires at least one commit to extract metrics."
+                f"Repository has 0 commits: {path_obj}. " "MIIE requires at least one commit to extract metrics."
             )
 
         # Workspace detection (monorepo, pnpm, yarn, etc.)

@@ -112,11 +112,13 @@ class TestScipyDipTest:
     def test_dip_test_importable(self):
         """dip_test should be importable from statistics module."""
         from miie.processing.detection.statistics import dip_test
+
         assert callable(dip_test)
 
     def test_dip_test_unimodal(self):
         """Unimodal distribution should produce valid dip test result."""
         from miie.processing.detection.statistics import dip_test
+
         rng = np.random.default_rng(42)
         data = rng.normal(0, 1, 500)
         result = dip_test(data)

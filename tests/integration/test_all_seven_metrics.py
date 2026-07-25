@@ -24,11 +24,13 @@ def multi_file_repo():
         subprocess.run(["git", "init", str(repo_path)], capture_output=True, check=True)
         subprocess.run(
             ["git", "-C", str(repo_path), "config", "user.email", "dev@test.com"],
-            capture_output=True, check=True,
+            capture_output=True,
+            check=True,
         )
         subprocess.run(
             ["git", "-C", str(repo_path), "config", "user.name", "Developer"],
-            capture_output=True, check=True,
+            capture_output=True,
+            check=True,
         )
 
         # Create test files
@@ -58,11 +60,13 @@ def multi_file_repo():
             (repo_path / f"core.py").write_text(f"x = {i}")
             subprocess.run(
                 ["git", "-C", str(repo_path), "add", "."],
-                capture_output=True, check=True,
+                capture_output=True,
+                check=True,
             )
             subprocess.run(
                 ["git", "-C", str(repo_path), "commit", "-m", msg],
-                capture_output=True, check=True,
+                capture_output=True,
+                check=True,
             )
 
         yield repo_path
@@ -77,6 +81,7 @@ class TestAllSevenMetrics:
 
         engine = ExtractionEngine()
         from miie.processing.ingestion import RepositoryIngestionEngine
+
         ingestion = RepositoryIngestionEngine()
         ctx = ingestion.ingest(str(multi_file_repo))
 
@@ -92,6 +97,7 @@ class TestAllSevenMetrics:
 
         engine = ExtractionEngine()
         from miie.processing.ingestion import RepositoryIngestionEngine
+
         ingestion = RepositoryIngestionEngine()
         ctx = ingestion.ingest(str(multi_file_repo))
 
@@ -107,6 +113,7 @@ class TestAllSevenMetrics:
 
         engine = ExtractionEngine()
         from miie.processing.ingestion import RepositoryIngestionEngine
+
         ingestion = RepositoryIngestionEngine()
         ctx = ingestion.ingest(str(multi_file_repo))
 
@@ -122,6 +129,7 @@ class TestAllSevenMetrics:
 
         engine = ExtractionEngine()
         from miie.processing.ingestion import RepositoryIngestionEngine
+
         ingestion = RepositoryIngestionEngine()
         ctx = ingestion.ingest(str(multi_file_repo))
 
@@ -138,6 +146,7 @@ class TestAllSevenMetrics:
 
         engine = ExtractionEngine()
         from miie.processing.ingestion import RepositoryIngestionEngine
+
         ingestion = RepositoryIngestionEngine()
         ctx = ingestion.ingest(str(multi_file_repo))
 
@@ -154,6 +163,7 @@ class TestAllSevenMetrics:
 
         engine = ExtractionEngine()
         from miie.processing.ingestion import RepositoryIngestionEngine
+
         ingestion = RepositoryIngestionEngine()
         ctx = ingestion.ingest(str(multi_file_repo))
 
@@ -169,6 +179,7 @@ class TestAllSevenMetrics:
 
         engine = ExtractionEngine()
         from miie.processing.ingestion import RepositoryIngestionEngine
+
         ingestion = RepositoryIngestionEngine()
         ctx = ingestion.ingest(str(multi_file_repo))
 
@@ -184,6 +195,7 @@ class TestAllSevenMetrics:
 
         engine = ExtractionEngine()
         from miie.processing.ingestion import RepositoryIngestionEngine
+
         ingestion = RepositoryIngestionEngine()
         ctx = ingestion.ingest(str(multi_file_repo))
 
@@ -232,12 +244,16 @@ class TestAllSevenMetrics:
         from miie.providers.git import GitObservationProvider
 
         dot_cov = tmp_path / ".coverage"
-        dot_cov.write_text(json.dumps({
-            "coverage": {
-                "main.py": [1, 1, 0, 1, 0],
-                "utils.py": [1, 1, 1, 1, 1],
-            }
-        }))
+        dot_cov.write_text(
+            json.dumps(
+                {
+                    "coverage": {
+                        "main.py": [1, 1, 0, 1, 0],
+                        "utils.py": [1, 1, 1, 1, 1],
+                    }
+                }
+            )
+        )
 
         result = GitObservationProvider._parse_dot_coverage(dot_cov)
         assert result == pytest.approx(8 / 10)

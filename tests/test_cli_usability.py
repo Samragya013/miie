@@ -149,12 +149,7 @@ class TestProgressStages:
         )
         output = strip_ansi(result.output)
         # Match either old format "OK [1/7]" or "[DONE] (0." or new premium format V + timing
-        assert (
-            "OK [1/7]" in output
-            or "[DONE] (0." in output
-            or "[DONE] (1." in output
-            or "V 1/7" in output
-        )
+        assert "OK [1/7]" in output or "[DONE] (0." in output or "[DONE] (1." in output or "V 1/7" in output
 
 
 class TestHumanFriendlyOutput:
@@ -360,11 +355,7 @@ class TestReportStructure:
             ],
         )
         output = strip_ansi(result.output)
-        assert (
-            "MIIE" in output
-            or "miie" in output.lower()
-            or "Measurement Integrity" in output
-        )
+        assert "MIIE" in output or "miie" in output.lower() or "Measurement Integrity" in output
 
     def test_analysis_summary_section(self, runner, repo_with_commits):
         # Use commit strategy with size=5 to produce 2+ windows from 12 commits

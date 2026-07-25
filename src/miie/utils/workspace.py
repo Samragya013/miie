@@ -92,10 +92,7 @@ class WorkspaceInfo:
         return prefixes
 
     def __repr__(self) -> str:
-        return (
-            f"WorkspaceInfo(tool={self.tool!r}, packages={len(self.packages)}, "
-            f"is_monorepo={self.is_monorepo})"
-        )
+        return f"WorkspaceInfo(tool={self.tool!r}, packages={len(self.packages)}, " f"is_monorepo={self.is_monorepo})"
 
 
 def detect_workspace(repo_path: Path) -> Optional[WorkspaceInfo]:
@@ -171,9 +168,7 @@ def _detect_workspace_recursive(
     return None
 
 
-def _try_workspace_configs(
-    directory: Path, repo_root: Path
-) -> Optional[WorkspaceInfo]:
+def _try_workspace_configs(directory: Path, repo_root: Path) -> Optional[WorkspaceInfo]:
     """Check a single directory for workspace config files.
 
     Returns WorkspaceInfo if found, None otherwise.

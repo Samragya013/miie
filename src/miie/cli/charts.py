@@ -54,8 +54,7 @@ def print_bar_chart(
 
         bar = "#" * filled + "." * empty
         console.print(
-            f"  {label:<{label_width}s} [{color}]{bar}[/{color}] "
-            f"[bold {color}]{value:.3f}[/bold {color}]"
+            f"  {label:<{label_width}s} [{color}]{bar}[/{color}] " f"[bold {color}]{value:.3f}[/bold {color}]"
         )
 
     console.print()
@@ -157,9 +156,7 @@ def print_sparkline(
 
     # Print min/max
     console.print(
-        f"  [dim]min: {min(values):.3f}  "
-        f"max: {max(values):.3f}  "
-        f"avg: {sum(values) / len(values):.3f}[/dim]"
+        f"  [dim]min: {min(values):.3f}  " f"max: {max(values):.3f}  " f"avg: {sum(values) / len(values):.3f}[/dim]"
     )
 
     # Print labels if provided

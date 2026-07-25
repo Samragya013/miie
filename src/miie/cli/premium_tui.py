@@ -27,25 +27,27 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from .design_tokens import TOKENS
 from .display import MIIE_THEME, console
+from .responsive import get_layout, get_terminal_width
 from .semantic_colors import (
+    ACTION_MESSAGES,
     BORDER_ERROR,
     BORDER_SUCCESS,
     BORDER_WARNING,
+    CAUTION,
     DETECTOR_CLEAR,
     DETECTOR_ERROR,
     DETECTOR_SKIPPED,
     DETECTOR_TRIGGERED,
+    DETECTOR_VERDICTS_CLEAR,
+    DETECTOR_VERDICTS_TRIGGERED,
     HEALTHY,
-    STABLE,
-    CAUTION,
     RISK,
     SOURCE_GIT,
     SOURCE_GITHUB,
     SOURCE_PROXY,
-    ACTION_MESSAGES,
-    DETECTOR_VERDICTS_CLEAR,
-    DETECTOR_VERDICTS_TRIGGERED,
+    STABLE,
     VERDICT_MESSAGES,
     score_bar,
     score_bar_labeled,
@@ -57,9 +59,6 @@ from .semantic_colors import (
     verdict_color,
     verdict_icon,
 )
-from .design_tokens import TOKENS
-from .responsive import get_layout, get_terminal_width
-
 
 # ── Visual Constants (from design tokens) ──────────────────────────────
 
@@ -87,6 +86,7 @@ _DETECTOR_ICONS = {
 
 # ── Score Display ──────────────────────────────────────────────────────
 
+
 def _score_color(score: float, thresholds: tuple = (0.9, 0.7, 0.5)) -> str:
     """Return Rich style based on score value (delegates to semantic colors)."""
     return score_to_color(score)
@@ -103,6 +103,7 @@ def _format_time(seconds: float) -> str:
 
 
 # ── Premium Pipeline Progress ─────────────────────────────────────────
+
 
 class PremiumPipelineProgress:
     """Real-time pipeline progress with Rich Live display.
@@ -179,9 +180,7 @@ class PremiumPipelineProgress:
 
             # Highlight current stage using semantic colors
             color = stage_status_color(state)
-            name_style = f"bold white" if state == "running" else (
-                "bold green" if state == "done" else ""
-            )
+            name_style = f"bold white" if state == "running" else ("bold green" if state == "done" else "")
             if name_style:
                 name = f"[{name_style}]{name}[/{name_style}]"
 
@@ -225,10 +224,7 @@ class PremiumPipelineProgress:
         _stage_map = {k: (n, d) for k, n, d in self.STAGES}
         name = _stage_map.get(stage_key, (stage_key, ""))[0]
         stage_num = self._current_idx + 1
-        console.print(
-            f"  [cyan]{stage_num}/{self.total_stages}[/cyan] "
-            f"[bold]{name}[/bold] {detail}"
-        )
+        console.print(f"  [cyan]{stage_num}/{self.total_stages}[/cyan] " f"[bold]{name}[/bold] {detail}")
         self._refresh()
 
     def stage_complete(self, stage_key: str, detail: str = "") -> None:
@@ -271,6 +267,7 @@ class PremiumPipelineProgress:
 
 
 # ── Executive Summary Panel ───────────────────────────────────────────
+
 
 def display_executive_summary(
     integrity_score: float,
@@ -371,7 +368,7 @@ def display_executive_summary(
             detail = "Invalid output"
         elif det_data.get("status") in ("error", "skipped"):
             status = _DETECTOR_ICONS["SKIPPED"]
-            detail = det_data.get("reason", "unknown")[:layout.max_detail_length]
+            detail = det_data.get("reason", "unknown")[: layout.max_detail_length]
         else:
             triggered = (
                 det_data.get("drift_detected")
@@ -450,11 +447,7 @@ def display_executive_summary(
         1
         for d in detector_outputs.values()
         if isinstance(d, dict)
-        and (
-            d.get("drift_detected")
-            or d.get("breakdown_detected")
-            or d.get("compression_detected", False)
-        )
+        and (d.get("drift_detected") or d.get("breakdown_detected") or d.get("compression_detected", False))
     )
 
     v_color, border = verdict_color(integrity_score, confidence_score, triggered_count)
@@ -590,6 +583,7 @@ def display_metric_sources(metric_names: list[str]) -> None:
 
 # ── Premium Footer ────────────────────────────────────────────────────
 
+
 def display_premium_footer(
     total_time: float,
     report_paths: dict[str, str] | None = None,
@@ -624,6 +618,7 @@ def display_premium_footer(
 
 
 # ── Compatibility Wrapper ─────────────────────────────────────────────
+
 
 def create_pipeline_progress(verbose: bool = False) -> PremiumPipelineProgress:
     """Create a premium pipeline progress instance."""

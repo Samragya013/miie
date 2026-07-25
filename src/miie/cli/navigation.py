@@ -22,6 +22,7 @@ from .display import console
 
 class FocusArea(Enum):
     """Navigable focus areas in the TUI."""
+
     PIPELINE = "pipeline"
     SCORES = "scores"
     DETECTORS = "detectors"
@@ -31,6 +32,7 @@ class FocusArea(Enum):
 
 class Action(Enum):
     """Available user actions."""
+
     NEXT = "next"
     PREV = "prev"
     DETAIL = "detail"
@@ -70,6 +72,7 @@ KEYBINDINGS: dict[str, Action] = {
 @dataclass
 class NavigationState:
     """Current navigation state of the TUI."""
+
     focus: FocusArea = FocusArea.PIPELINE
     expanded: bool = False
     filter_active: bool = False
@@ -78,13 +81,15 @@ class NavigationState:
     help_visible: bool = False
 
     # Focus order (top to bottom)
-    _focus_order: list[FocusArea] = field(default_factory=lambda: [
-        FocusArea.PIPELINE,
-        FocusArea.SCORES,
-        FocusArea.DETECTORS,
-        FocusArea.EVIDENCE,
-        FocusArea.FOOTER,
-    ])
+    _focus_order: list[FocusArea] = field(
+        default_factory=lambda: [
+            FocusArea.PIPELINE,
+            FocusArea.SCORES,
+            FocusArea.DETECTORS,
+            FocusArea.EVIDENCE,
+            FocusArea.FOOTER,
+        ]
+    )
 
     def next_focus(self) -> None:
         """Move focus to next area."""
@@ -162,6 +167,7 @@ def render_help_overlay(state: NavigationState) -> Text:
 
 # ── Focus Indicator ───────────────────────────────────────────────────
 
+
 def render_focus_indicator(area: FocusArea, is_focused: bool) -> Text:
     """Render a focus indicator for a section."""
     text = Text()
@@ -173,6 +179,7 @@ def render_focus_indicator(area: FocusArea, is_focused: bool) -> Text:
 
 
 # ── Filter Bar ────────────────────────────────────────────────────────
+
 
 def render_filter_bar(text: str) -> Text:
     """Render the filter input bar."""

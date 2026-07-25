@@ -113,6 +113,7 @@ class TestFullPipeline:
     def test_cli_commands_registered(self):
         """All 13 CLI commands should be registered."""
         from click.testing import CliRunner
+
         from miie.cli import cli
 
         runner = CliRunner()
@@ -128,6 +129,9 @@ class TestFullPipeline:
 
     def test_contracts_are_protocols(self):
         """Frozen contracts should be Protocol classes."""
+        # All should be Protocol subclasses
+        from typing import Protocol
+
         from miie.contracts.interfaces import (
             IDetectorEngine,
             IEvidenceEngine,
@@ -135,9 +139,6 @@ class TestFullPipeline:
             IIngestionEngine,
             IScoringEngine,
         )
-
-        # All should be Protocol subclasses
-        from typing import Protocol
 
         assert issubclass(IIngestionEngine, Protocol)
         assert issubclass(IExtractionEngine, Protocol)

@@ -48,7 +48,7 @@ ALLOWED_DEPENDENCIES = {
     "application": {"processing", "contracts", "schemas", "utils"},
     # Interface / entry points
     "api": {"processing"},
-    "cli": {"contracts", "utils", "processing", "sampling", "application"},
+    "cli": {"contracts", "utils", "processing", "sampling", "application", "benchmark", "config", "schemas", "workspace", "reporting"},
     "benchmark": {"contracts", "schemas", "processing"},
     # Scientific analysis
     "scientific": {"sampling"},

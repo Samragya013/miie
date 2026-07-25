@@ -31,16 +31,18 @@ from rich.text import Text
 
 class ColorBlindMode(Enum):
     """Supported color blindness modes."""
+
     NORMAL = "normal"
     DEUTERANOPIA = "deuteranopia"  # Red-green (most common)
-    PROTANOPIA = "protanopia"      # Red-green
-    TRITANOPIA = "tritanopia"      # Blue-yellow
+    PROTANOPIA = "protanopia"  # Red-green
+    TRITANOPIA = "tritanopia"  # Blue-yellow
     MONOCHROME = "monochrome"
 
 
 @dataclass
 class AccessibilityConfig:
     """Accessibility configuration."""
+
     color_mode: ColorBlindMode = ColorBlindMode.NORMAL
     no_color: bool = False
     dumb_terminal: bool = False
@@ -168,6 +170,7 @@ def status_icon(status: str) -> str:
 
 # ── Accessible Score Display ──────────────────────────────────────────
 
+
 def accessible_score(
     score: float,
     label: str = "",
@@ -237,6 +240,7 @@ def accessible_verdict(
 
 # ── Screen Reader Support ─────────────────────────────────────────────
 
+
 def sr_section_start(name: str) -> str:
     """Screen reader: section start marker."""
     return f"\x1b]1337;Custom=id=miie-{name}\x07"
@@ -248,6 +252,7 @@ def sr_section_end() -> str:
 
 
 # ── Environment Detection ─────────────────────────────────────────────
+
 
 def should_use_color() -> bool:
     """Check if terminal supports color."""
@@ -261,6 +266,7 @@ def should_use_color() -> bool:
 def terminal_supports_unicode() -> bool:
     """Check if terminal supports Unicode."""
     import sys
+
     if sys.platform == "win32":
         # Windows Terminal supports Unicode, legacy cmd may not
         wt = os.environ.get("WT_SESSION")

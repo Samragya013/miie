@@ -522,7 +522,10 @@ class CorrelationBreakdownDetector(BaseDetector):
                         "window_pair": [window_ids[k], window_ids[k + 1]],
                         "delta_effective": delta,
                         "pearson_values": [pearson_values[k], pearson_values[k + 1]],
-                        "spearman_values": [spearman_values[k] if k < len(spearman_values) else None, spearman_values[k + 1] if k + 1 < len(spearman_values) else None],
+                        "spearman_values": [
+                            spearman_values[k] if k < len(spearman_values) else None,
+                            spearman_values[k + 1] if k + 1 < len(spearman_values) else None,
+                        ],
                         "detection_method": "sudden_drop",
                     }
                 )
@@ -543,7 +546,10 @@ class CorrelationBreakdownDetector(BaseDetector):
                         "window_pair": [window_ids[k], window_ids[k + 1]],
                         "effective_values": [effective[k], effective[k + 1]],
                         "pearson_values": [pearson_values[k], pearson_values[k + 1]],
-                        "spearman_values": [spearman_values[k] if k < len(spearman_values) else None, spearman_values[k + 1] if k + 1 < len(spearman_values) else None],
+                        "spearman_values": [
+                            spearman_values[k] if k < len(spearman_values) else None,
+                            spearman_values[k + 1] if k + 1 < len(spearman_values) else None,
+                        ],
                         "detection_method": "sign_reversal",
                     }
                 )
@@ -602,7 +608,10 @@ class CorrelationBreakdownDetector(BaseDetector):
                             "confidence_intervals": [ci_curr, ci_next],
                             "effective_values": [effective[k], effective[k + 1]],
                             "pearson_values": [pearson_values[k], pearson_values[k + 1]],
-                            "spearman_values": [spearman_values[k] if k < len(spearman_values) else None, spearman_values[k + 1] if k + 1 < len(spearman_values) else None],
+                            "spearman_values": [
+                                spearman_values[k] if k < len(spearman_values) else None,
+                                spearman_values[k + 1] if k + 1 < len(spearman_values) else None,
+                            ],
                             "detection_method": "confidence_exclusion",
                         }
                     )

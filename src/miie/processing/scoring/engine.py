@@ -727,7 +727,11 @@ class ScoringEngine(IScoringEngine):
                     has_any = False
                     for window_key in metric_series.keys():
                         value_list = metric_series[window_key]
-                        if isinstance(value_list, list) and len(value_list) > 0 and any(x is not None for x in value_list):
+                        if (
+                            isinstance(value_list, list)
+                            and len(value_list) > 0
+                            and any(x is not None for x in value_list)
+                        ):
                             has_any = True
                             break
                     if not has_any:
@@ -736,7 +740,11 @@ class ScoringEngine(IScoringEngine):
                 else:
                     for window_key in metric_series.keys():
                         value_list = metric_series[window_key]
-                        if not isinstance(value_list, list) or len(value_list) == 0 or all(x is None for x in value_list):
+                        if (
+                            not isinstance(value_list, list)
+                            or len(value_list) == 0
+                            or all(x is None for x in value_list)
+                        ):
                             missing_pairs += 1
 
         return compute_missing_data_factor(missing_pairs, total_pairs)

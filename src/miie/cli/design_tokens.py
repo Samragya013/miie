@@ -23,7 +23,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # ── Semantic Color Definitions ─────────────────────────────────────────
 # Evidence: Colors represent MEANING, not decoration.
 # Source: K9s status colors, LazyGit diff colors, btop gauge colors.
@@ -31,38 +30,38 @@ from typing import Any
 
 # Scientific Health Colors (derived from traffic light paradigm + research)
 # Green = verified healthy (go), Yellow = caution/monitor, Red = anomaly/stop
-COLOR_HEALTHY = "bold green"        # Integrity score >= 0.9
-COLOR_STABLE = "green"              # Integrity score >= 0.7
-COLOR_CAUTION = "bold yellow"       # Integrity score >= 0.5, warnings
-COLOR_RISK = "bold bright_red"      # Integrity score < 0.5
-COLOR_CRITICAL = "bold red"         # Critical anomalies, failures
+COLOR_HEALTHY = "bold green"  # Integrity score >= 0.9
+COLOR_STABLE = "green"  # Integrity score >= 0.7
+COLOR_CAUTION = "bold yellow"  # Integrity score >= 0.5, warnings
+COLOR_RISK = "bold bright_red"  # Integrity score < 0.5
+COLOR_CRITICAL = "bold red"  # Critical anomalies, failures
 
 # Evidence & Confidence Colors
 # Blue family = information, evidence, data (cool = analytical)
-COLOR_EVIDENCE = "cyan"             # Evidence presentation
-COLOR_CONFIDENCE_HIGH = "bold green"   # Confidence >= 0.9
-COLOR_CONFIDENCE_OK = "cyan"            # Confidence >= 0.7
-COLOR_CONFIDENCE_LOW = "yellow"         # Confidence >= 0.5
-COLOR_CONFIDENCE_UNRELIABLE = "red"     # Confidence < 0.5
+COLOR_EVIDENCE = "cyan"  # Evidence presentation
+COLOR_CONFIDENCE_HIGH = "bold green"  # Confidence >= 0.9
+COLOR_CONFIDENCE_OK = "cyan"  # Confidence >= 0.7
+COLOR_CONFIDENCE_LOW = "yellow"  # Confidence >= 0.5
+COLOR_CONFIDENCE_UNRELIABLE = "red"  # Confidence < 0.5
 
 # Detector Colors (binary status: clear vs triggered)
 # Consistent across all detectors — users learn the pattern
-COLOR_CLEAR = "bold green"          # Detector found no anomaly
-COLOR_TRIGGERED = "bold red"        # Detector found anomaly
-COLOR_SKIPPED = "dim"               # Detector skipped (insufficient data)
-COLOR_ERROR = "bold yellow"         # Detector errored
+COLOR_CLEAR = "bold green"  # Detector found no anomaly
+COLOR_TRIGGERED = "bold red"  # Detector found anomaly
+COLOR_SKIPPED = "dim"  # Detector skipped (insufficient data)
+COLOR_ERROR = "bold yellow"  # Detector errored
 
 # Status Colors (progress feedback)
-COLOR_RUNNING = "bold cyan"         # Stage in progress
-COLOR_COMPLETE = "bold green"       # Stage completed successfully
-COLOR_FAILED = "bold red"           # Stage failed
-COLOR_PENDING = "dim"               # Stage not yet started
+COLOR_RUNNING = "bold cyan"  # Stage in progress
+COLOR_COMPLETE = "bold green"  # Stage completed successfully
+COLOR_FAILED = "bold red"  # Stage failed
+COLOR_PENDING = "dim"  # Stage not yet started
 
 # Data Source Colors (metric provenance)
 # Cool-to-warm spectrum: git (blue) < proxy (yellow) < api (green)
-COLOR_SOURCE_GIT = "blue"           # Git-extracted metrics
-COLOR_SOURCE_GITHUB = "green"       # GitHub API metrics
-COLOR_SOURCE_PROXY = "yellow"       # Coverage proxy metrics
+COLOR_SOURCE_GIT = "blue"  # Git-extracted metrics
+COLOR_SOURCE_GITHUB = "green"  # GitHub API metrics
+COLOR_SOURCE_PROXY = "yellow"  # Coverage proxy metrics
 
 # UI Chrome Colors (non-semantic, structural)
 COLOR_BORDER_PRIMARY = "bright_cyan"
@@ -109,6 +108,7 @@ STATUS_CHAR = {
 # Evidence: 4-tier system based on psychophysical just-noticeable
 # difference research. Gaps of 0.2 are perceptually distinct.
 
+
 @dataclass(frozen=True)
 class ScoreThresholds:
     """Thresholds for score-to-color mapping.
@@ -119,6 +119,7 @@ class ScoreThresholds:
     - >= 0.5: Moderate (yellow) — monitor
     - <  0.5: Low (red) — investigate
     """
+
     very_high: float = 0.9
     high: float = 0.7
     moderate: float = 0.5
@@ -151,9 +152,11 @@ class ScoreThresholds:
 # Rich style strings (bold, dim, color) not pixel sizes.
 # Reference: gh CLI uses bold for emphasis, dim for secondary info.
 
+
 @dataclass(frozen=True)
 class TypographyTokens:
     """Terminal typography expressed as Rich style patterns."""
+
     # Heading hierarchy
     h1: str = "bold bright_white"
     h2: str = "bold cyan"
@@ -181,18 +184,20 @@ class TypographyTokens:
 # Evidence: Character-width spacing. Based on analysis of LazyGit, K9s
 # padding patterns. Consistent indentation reduces cognitive load.
 
+
 @dataclass(frozen=True)
 class SpacingTokens:
     """Character-width spacing constants."""
+
     none: int = 0
-    xs: int = 1       # 1 char  — minimal gap
-    sm: int = 2       # 2 chars — between related items
-    md: int = 4       # 4 chars — standard section indent
-    lg: int = 6       # 6 chars — between sections
-    xl: int = 8       # 8 chars — major section break
+    xs: int = 1  # 1 char  — minimal gap
+    sm: int = 2  # 2 chars — between related items
+    md: int = 4  # 4 chars — standard section indent
+    lg: int = 6  # 6 chars — between sections
+    xl: int = 8  # 8 chars — major section break
 
     # Semantic spacing
-    indent: int = 2   # Standard content indent
+    indent: int = 2  # Standard content indent
     section_gap: int = 1  # Blank line equivalent (used as padding)
 
 
@@ -201,9 +206,11 @@ class SpacingTokens:
 # Double = primary, Single = secondary, Dots = tertiary.
 # Reference: LazyGit panel borders, K9s section separators.
 
+
 @dataclass(frozen=True)
 class BorderTokens:
     """Border and separator character patterns."""
+
     # Horizontal rules (by visual weight)
     double: str = "=" * 58
     single: str = "-" * 58
@@ -226,19 +233,21 @@ class BorderTokens:
 # Evidence: Terminal width breakpoints derived from common terminal
 # sizes. Adaptive layouts ensure readability at all widths.
 
+
 @dataclass(frozen=True)
 class LayoutTokens:
     """Terminal width breakpoints and layout constants."""
+
     # Width categories (columns)
-    narrow: int = 80       # Minimum usable width
-    standard: int = 100    # Default target
-    wide: int = 120        # Comfortable
-    ultrawide: int = 160   # Maximum useful width
+    narrow: int = 80  # Minimum usable width
+    standard: int = 100  # Default target
+    wide: int = 120  # Comfortable
+    ultrawide: int = 160  # Maximum useful width
 
     # Content widths
-    score_bar_width: int = 20     # Score bar visualization
-    score_bar_wide: int = 36      # Wide score bar for dashboards
-    progress_width: int = 40      # Progress bar width
+    score_bar_width: int = 20  # Score bar visualization
+    score_bar_wide: int = 36  # Wide score bar for dashboards
+    progress_width: int = 40  # Progress bar width
 
     # Panel padding
     panel_padding: tuple[int, int] = (0, 1)
@@ -255,9 +264,11 @@ class LayoutTokens:
 # Evidence: Terminal animation is limited. Spinner + progress bar
 # are the primary motion patterns. Timing affects perceived speed.
 
+
 @dataclass(frozen=True)
 class AnimationTokens:
     """Terminal animation parameters."""
+
     spinner_style: str = "cyan"
     progress_style: str = "cyan"
     pulse_style: str = "bold cyan"
@@ -269,6 +280,7 @@ class AnimationTokens:
 
 
 # ── Complete Token Set ─────────────────────────────────────────────────
+
 
 @dataclass
 class MIIEDesignTokens:
@@ -282,6 +294,7 @@ class MIIEDesignTokens:
         color = tokens.thresholds.get_color(integrity_score)
         console.print(f"[{color}]Score: {integrity_score:.3f}[/{color}]")
     """
+
     thresholds: ScoreThresholds = field(default_factory=ScoreThresholds)
     typography: TypographyTokens = field(default_factory=TypographyTokens)
     spacing: SpacingTokens = field(default_factory=SpacingTokens)

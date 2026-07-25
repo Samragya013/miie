@@ -18,16 +18,20 @@ from rich.theme import Theme
 
 # Import branding
 from .branding import (
-    LOGO_FULL,
-    LOGO_FULL_TALL,
-    LOGO_FULL_DOUBLE,
     LOGO_COMPACT,
+    LOGO_FULL,
+    LOGO_FULL_DOUBLE,
+    LOGO_FULL_TALL,
     LOGO_MINIMAL,
     PALETTE_PREMIUM,
-    print_banner as _print_premium_banner,
-    print_splash,
+)
+from .branding import print_banner as _print_premium_banner
+from .branding import (
     print_compact_banner,
-    print_footer as _print_premium_footer,
+)
+from .branding import print_footer as _print_premium_footer
+from .branding import (
+    print_splash,
     print_startup_screen,
 )
 
@@ -277,10 +281,14 @@ def print_pipeline_stage(
         console.print(f"    {icon} {stage_badge(stage_num, total)} [bold white]{name}[/bold white]")
         console.print(f"       [cyan]{filled}[/cyan][dim]{empty}[/dim] [dim]{stage_num}/{total}[/dim]")
     elif status == "done":
-        console.print(f"    {icon} {stage_badge(stage_num, total)} [bold white]{name}[/bold white]{elapsed_str}{detail_str}")
+        console.print(
+            f"    {icon} {stage_badge(stage_num, total)} [bold white]{name}[/bold white]{elapsed_str}{detail_str}"
+        )
         console.print(f"       [green]{filled}[/green][dim]{empty}[/dim] [dim]{stage_num}/{total}[/dim]")
     elif status == "error":
-        console.print(f"    {icon} {stage_badge(stage_num, total)} [bold red]{name}[/bold red]{elapsed_str} [red]{detail}[/red]")
+        console.print(
+            f"    {icon} {stage_badge(stage_num, total)} [bold red]{name}[/bold red]{elapsed_str} [red]{detail}[/red]"
+        )
         console.print(f"       [red]{filled}[/red][dim]{empty}[/dim] [dim]{stage_num}/{total}[/dim]")
     else:
         console.print(f"    {icon} {stage_badge(stage_num, total)} [dim]{name}[/dim]{detail_str}")

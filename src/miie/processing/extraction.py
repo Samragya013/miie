@@ -24,6 +24,7 @@ import uuid
 import warnings as _warnings
 from pathlib import Path
 from typing import Any, List, Optional
+
 from defusedxml import ElementTree
 
 from miie.contracts.errors import ExtractionError
@@ -154,9 +155,7 @@ class MetricExtractionEngine(IExtractionEngine):
 
                 # If windows are provided, redistribute observations across windows
                 if windows and _collection and _collection.windows:
-                    metrics = self._redistribute_to_windows(
-                        _collection, provider_metrics, windows
-                    )
+                    metrics = self._redistribute_to_windows(_collection, provider_metrics, windows)
                 else:
                     metrics.update(mdf.metrics)
             except Exception:
@@ -250,9 +249,7 @@ class MetricExtractionEngine(IExtractionEngine):
                         if "+" in ts[10:] or ts.endswith("+00:00"):
                             dt = datetime.datetime.fromisoformat(ts)
                         else:
-                            dt = datetime.datetime.fromisoformat(ts).replace(
-                                tzinfo=datetime.timezone.utc
-                            )
+                            dt = datetime.datetime.fromisoformat(ts).replace(tzinfo=datetime.timezone.utc)
                         obs_date = dt.date()
                     elif hasattr(ts, "date"):
                         obs_date = ts.date()

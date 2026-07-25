@@ -2,7 +2,16 @@
 
 Inspired by Claude Code / OpenCode / Mimo Code.
 Uses Rich Layout + Live for real-time panel updates.
-Non-blocking keyboard input via prompt_toolkit.
+Non-blocking keyboard input via msvcrt (Windows) / termios (Unix).
+
+Unified navigation model:
+- Number keys (1-6): Direct panel access
+- j/k or Up/Down: Sequential navigation
+- Tab/Shift-Tab: Cycle panels
+- Enter/Space: Expand detail
+- /: Filter (future)
+- ?: Toggle help overlay
+- q: Quit
 
 Entry point: launch_tui() or via `miie` with no args.
 """
@@ -12,6 +21,7 @@ from __future__ import annotations
 import os
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -39,7 +49,6 @@ class TUIState:
         self.status_message: str = "Ready"
         self.main_content: str = "welcome"
         self.sidebar_selected: int = 0
-        self.show_palette: bool = False
         self.running: bool = True
         self.analysis_result: dict | None = None
         self.history: list[dict] = []
@@ -114,8 +123,6 @@ def _render_main(state: TUIState) -> Panel:
         return _render_history_view(state)
     elif content == "help":
         return _render_help_view(state)
-    elif content == "palette":
-        return _render_palette(state)
     else:
         return Panel(Text(f"  Unknown view: {content}"), title="Main")
 
@@ -135,14 +142,16 @@ def _render_welcome(state: TUIState) -> Panel:
     text.append("  3. View results:    ", style="white")
     text.append("dashboard\n", style="bright_cyan")
     text.append("\n  Keyboard Shortcuts:\n\n", style="bold white")
-    text.append("  : or /     ", style="bright_cyan")
-    text.append("Enter command mode\n", style="white")
-    text.append("  Ctrl+K      ", style="bright_cyan")
-    text.append("Command palette\n", style="white")
-    text.append("  1-6         ", style="bright_cyan")
+    text.append("  j/k         ", style="bright_cyan")
     text.append("Navigate panels\n", style="white")
+    text.append("  1-6         ", style="bright_cyan")
+    text.append("Jump to panel\n", style="white")
     text.append("  Tab         ", style="bright_cyan")
     text.append("Cycle panels\n", style="white")
+    text.append("  : or /      ", style="bright_cyan")
+    text.append("Enter command mode\n", style="white")
+    text.append("  ?           ", style="bright_cyan")
+    text.append("Toggle help overlay\n", style="white")
     text.append("  q           ", style="bright_cyan")
     text.append("Quit\n", style="white")
     text.append("\n  Type ", style="dim")
@@ -212,9 +221,15 @@ def _render_status_view(state: TUIState) -> Panel:
     text.append("  " + "-" * 30 + "\n", style="dim")
 
     engines = [
-        "IngestionEngine", "ExtractionEngine", "SegmentationEngine",
-        "ScoringEngine", "EvidenceEngine", "ExplanationEngine",
-        "ReportGenerator", "BenchmarkEngine", "EvaluationEngine",
+        "IngestionEngine",
+        "ExtractionEngine",
+        "SegmentationEngine",
+        "ScoringEngine",
+        "EvidenceEngine",
+        "ExplanationEngine",
+        "ReportGenerator",
+        "BenchmarkEngine",
+        "EvaluationEngine",
     ]
     _engine_modules = {
         "IngestionEngine": "miie.processing.ingestion",
@@ -270,68 +285,72 @@ def _render_history_view(state: TUIState) -> Panel:
 
 
 def _render_help_view(state: TUIState) -> Panel:
-    """Render help view."""
+    """Render help overlay with keyboard shortcuts."""
     text = Text()
     text.append("\n  KEYBOARD SHORTCUTS\n", style="bold bright_cyan")
-    text.append("  " + "=" * 40 + "\n\n", style="dim")
+    text.append("  " + "=" * 44 + "\n\n", style="dim")
     shortcuts = [
-        ("Ctrl+K", "Command palette"),
-        ("1-6", "Navigate to panel"),
-        ("Tab", "Cycle panels"),
-        ("Up/Down", "Navigate items"),
-        ("Enter", "Select item"),
-        ("q", "Quit"),
-        ("Esc", "Close palette / back"),
+        (
+            "Navigation",
+            [
+                ("j / Down", "Next panel"),
+                ("k / Up", "Previous panel"),
+                ("1-6", "Jump to panel"),
+                ("Tab", "Cycle panels"),
+            ],
+        ),
+        (
+            "Actions",
+            [
+                (": or /", "Enter command mode"),
+                ("Enter", "Execute command"),
+                ("?", "Toggle this help"),
+                ("q", "Quit"),
+            ],
+        ),
+        (
+            "Commands",
+            [
+                ("repo <path>", "Set repository"),
+                ("run", "Start analysis"),
+                ("dashboard", "Show results"),
+                ("status", "System status"),
+                ("config", "Configuration"),
+                ("history", "Past runs"),
+                ("help", "Show help"),
+            ],
+        ),
     ]
-    for key, desc in shortcuts:
-        text.append(f"  ", style="dim")
-        text.append(f"{key:<12}", style="bold bright_cyan")
-        text.append(f"{desc}\n", style="white")
+    for section, items in shortcuts:
+        text.append(f"  {section}\n", style="bold white")
+        text.append("  " + "-" * 30 + "\n", style="dim")
+        for key, desc in items:
+            text.append(f"    {key:14s}", style="bold bright_cyan")
+            text.append(f" {desc}\n", style="white")
+        text.append("\n", style="dim")
 
-    text.append("\n  SLASH COMMANDS\n", style="bold bright_cyan")
-    text.append("  " + "=" * 40 + "\n\n", style="dim")
-    commands = [
-        "/help", "/analyze", "/status", "/export",
-        "/config", "/history", "/quit",
-    ]
-    for cmd in commands:
-        text.append(f"  {cmd}\n", style="bright_cyan")
+    text.append("  Press ", style="dim")
+    text.append("?", style="bold bright_cyan")
+    text.append(" or ", style="dim")
+    text.append("q", style="bold bright_cyan")
+    text.append(" to close.\n", style="dim")
 
     return Panel(text, title="[bold]Help[/bold]", border_style="bright_cyan")
-
-
-def _render_palette(state: TUIState) -> Panel:
-    """Render command palette overlay."""
-    text = Text()
-    text.append("  COMMAND PALETTE\n", style="bold bright_cyan")
-    text.append("  " + "=" * 40 + "\n\n", style="dim")
-    text.append("  Type to filter commands...\n\n", style="dim")
-    commands = [
-        "analyze", "status", "config", "dashboard",
-        "help", "history", "export", "quit",
-    ]
-    for cmd in commands:
-        text.append(f"  > {cmd}\n", style="white")
-    return Panel(text, title="[bold]Command Palette (Ctrl+K)[/bold]", border_style="bright_cyan")
 
 
 def _render_status_bar(state: TUIState) -> Panel:
     """Render status bar with command input."""
     text = Text()
     text.append("  MIIE ", style="bold bright_cyan")
-    text.append(f"v{_get_version()} ", style="dim")
-    text.append("| ", style="dim")
 
-    if hasattr(state, 'command_mode') and state.command_mode:
-        # Command input mode
+    if hasattr(state, "command_mode") and state.command_mode:
         text.append(":", style="bold bright_cyan")
-        text.append(getattr(state, 'command_buffer', ''), style="bold white")
+        text.append(getattr(state, "command_buffer", ""), style="bold white")
         text.append("_", style="blink white")
         text.append("  Enter: execute  Esc: cancel", style="dim")
     else:
         text.append(state.status_message, style="white")
-        text.append(" | ", style="dim")
-        text.append("Ctrl+K: palette  :: command  q: quit", style="dim")
+        text.append("  j/k: nav  ?: help  q: quit", style="dim")
 
     return Panel(text, style="dim", height=1)
 
@@ -340,6 +359,7 @@ def _get_version() -> str:
     """Get MIIE version."""
     try:
         from miie import __version__
+
         return __version__
     except ImportError:
         return "1.6.0"
@@ -370,7 +390,17 @@ def _build_layout(state: TUIState) -> Layout:
 
 
 def _handle_key(state: TUIState, key: str) -> bool:
-    """Handle keyboard input. Returns False to quit."""
+    """Handle keyboard input. Returns False to quit.
+
+    Unified navigation model (inspired by LazyGit / K9s / gh CLI):
+    - Number keys (1-6): Direct panel access
+    - j/k or Up/Down: Sequential navigation
+    - Tab/Shift-Tab: Cycle panels
+    - Enter/Space: Expand detail
+    - /: Filter (future)
+    - ?: Toggle help overlay
+    - q: Quit
+    """
 
     # Command input mode - handle text input
     if state.command_mode:
@@ -426,20 +456,33 @@ def _handle_key(state: TUIState, key: str) -> bool:
         state.set_status(":")
         return True
 
-    if key == "ctrl+k":
-        state.show_palette = not state.show_palette
-        if state.show_palette:
-            state.set_main("palette")
-        else:
+    # ? toggles help overlay (replaces non-functional Ctrl+K palette)
+    if key == "?":
+        if state.main_content == "help":
             state.set_main("welcome")
+            state.set_status("Ready")
+        else:
+            state.set_main("help")
+            state.set_status("Help - press ? to close")
+        return True
+
+    # Ctrl+K now also toggles help (unified with ?)
+    if key == "ctrl+k":
+        if state.main_content == "help":
+            state.set_main("welcome")
+            state.set_status("Ready")
+        else:
+            state.set_main("help")
+            state.set_status("Help - press ? to close")
         return True
 
     if key == "escape":
-        if state.show_palette:
-            state.show_palette = False
+        if state.main_content == "help":
             state.set_main("welcome")
+            state.set_status("Ready")
         return True
 
+    # Tab / Shift-Tab cycle panels
     if key == "tab":
         panels = ["welcome", "dashboard", "analyze", "status", "config", "history", "help"]
         try:
@@ -447,24 +490,39 @@ def _handle_key(state: TUIState, key: str) -> bool:
             state.set_main(panels[(idx + 1) % len(panels)])
         except ValueError:
             state.set_main("welcome")
+        # Update sidebar selection to match
+        try:
+            state.sidebar_selected = panels.index(state.main_content)
+        except ValueError:
+            pass
         return True
 
+    # j / Down: next panel
+    if key in ("j", "down"):
+        panels = ["welcome", "dashboard", "analyze", "status", "config", "history", "help"]
+        state.sidebar_selected = min(len(panels) - 1, state.sidebar_selected + 1)
+        state.set_main(panels[state.sidebar_selected])
+        return True
+
+    # k / Up: previous panel
+    if key in ("k", "up"):
+        panels = ["welcome", "dashboard", "analyze", "status", "config", "history", "help"]
+        state.sidebar_selected = max(0, state.sidebar_selected - 1)
+        state.set_main(panels[state.sidebar_selected])
+        return True
+
+    # Number keys: direct panel access
     if key in ("1", "2", "3", "4", "5", "6"):
-        panel_map = {"1": "dashboard", "2": "analyze", "3": "status", "4": "config", "5": "history", "6": "help"}
+        panel_map = {
+            "1": "dashboard",
+            "2": "analyze",
+            "3": "status",
+            "4": "config",
+            "5": "history",
+            "6": "help",
+        }
         state.set_main(panel_map[key])
         state.sidebar_selected = int(key) - 1
-        return True
-
-    if key == "up":
-        state.sidebar_selected = max(0, state.sidebar_selected - 1)
-        panels = ["welcome", "dashboard", "analyze", "status", "config", "history", "help"]
-        state.set_main(panels[state.sidebar_selected])
-        return True
-
-    if key == "down":
-        state.sidebar_selected = min(6, state.sidebar_selected + 1)
-        panels = ["welcome", "dashboard", "analyze", "status", "config", "history", "help"]
-        state.set_main(panels[state.sidebar_selected])
         return True
 
     return True
@@ -473,10 +531,138 @@ def _handle_key(state: TUIState, key: str) -> bool:
 # ── Command Execution ──────────────────────────────────────────────────
 
 
+# ── In-Process Analysis ─────────────────────────────────────────────────
+
+
+def _run_tui_analysis(state: TUIState) -> None:
+    """Run the MIIE pipeline in-process with progress updates.
+
+    Unlike the subprocess approach, this streams progress updates directly
+    to the TUI status bar, keeping the UI responsive during analysis.
+    """
+    import time as _time
+
+    state.set_status("Starting analysis pipeline...")
+
+    try:
+        t0 = _time.perf_counter()
+
+        # Stage 1: Acquisition
+        state.set_status("[1/6] Loading repository...")
+        from ..processing.ingestion import RepositoryIngestionEngine
+
+        ingestion = RepositoryIngestionEngine()
+        repo_context = ingestion.ingest(state.repo_path)
+        total_commits = getattr(repo_context, "total_commits", "?")
+        state.set_status(f"[1/6] Loaded {total_commits} commits ({_time.perf_counter() - t0:.1f}s)")
+
+        # Stage 2: Extraction
+        state.set_status("[2/6] Extracting metrics...")
+        t_stage = _time.perf_counter()
+        from ..processing.extraction.engine import ExtractionEngine
+
+        extraction = ExtractionEngine()
+        observation_collection, metric_dataframe = extraction.extract(
+            context=repo_context,
+            metric_list=["M-02", "M-06"],
+        )
+        state.set_status(f"[2/6] Metrics extracted ({_time.perf_counter() - t_stage:.1f}s)")
+
+        # Stage 3: Segmentation
+        state.set_status("[3/6] Building windows...")
+        t_stage = _time.perf_counter()
+        from ..processing.observation.models import WindowConfig
+        from ..processing.observation.window_builder import ObservationWindowBuilder
+
+        builder = ObservationWindowBuilder()
+        window_config = WindowConfig(
+            strategy="temporal",
+            window_size=7,
+            min_observations=2,
+        )
+        builder_result = builder.build(collection=observation_collection, config=window_config)
+        observation_windows = builder_result.windows
+        state.set_status(f"[3/6] {len(observation_windows)} windows ({_time.perf_counter() - t_stage:.1f}s)")
+
+        # Stage 4: Detection
+        state.set_status("[4/6] Running detectors...")
+        t_stage = _time.perf_counter()
+        from ..processing.detection.dispatcher import DetectorDispatcherEngine
+
+        dispatcher = DetectorDispatcherEngine()
+        detections = dispatcher.dispatch(
+            metric_dataframe=metric_dataframe,
+            window_config=window_config,
+            observation_collection=observation_collection,
+        )
+        state.set_status(f"[4/6] {len(detections)} detections ({_time.perf_counter() - t_stage:.1f}s)")
+
+        # Stage 5: Scoring
+        state.set_status("[5/6] Computing scores...")
+        t_stage = _time.perf_counter()
+        from ..processing.scoring.engine import ScoringEngine
+
+        scoring = ScoringEngine()
+        integrity_score = scoring.compute_integrity(detections=detections)
+        confidence_score = scoring.compute_confidence(
+            observation_count=sum(len(ow.observations) for ow in observation_windows),
+            window_count=len(observation_windows),
+            detection_count=len(detections),
+        )
+        state.set_status(f"[5/6] Scores computed ({_time.perf_counter() - t_stage:.1f}s)")
+
+        # Stage 6: Report
+        state.set_status("[6/6] Generating report...")
+        t_stage = _time.perf_counter()
+        from ..processing.reporting.engine import ReportGenerator
+
+        report_gen = ReportGenerator()
+        report = report_gen.generate(
+            integrity_score=integrity_score,
+            confidence_score=confidence_score,
+            detections=detections,
+            output_dir=state.output_dir,
+        )
+        state.set_status(f"[6/6] Report saved ({_time.perf_counter() - t_stage:.1f}s)")
+
+        # Store results
+        state.analysis_result = {
+            "integrity": getattr(integrity_score, "score", None),
+            "confidence": getattr(confidence_score, "score", None),
+            "detections": len(detections),
+            "windows": len(observation_windows),
+            "commits": total_commits,
+        }
+
+        # Populate history
+        state.history.append(
+            {
+                "repo": state.repo_path,
+                "timestamp": datetime.now().isoformat(timespec="seconds"),
+                "integrity": state.analysis_result.get("integrity"),
+                "confidence": state.analysis_result.get("confidence"),
+                "detections": len(detections),
+            }
+        )
+
+        elapsed = _time.perf_counter() - t0
+        state.set_status(f"Complete! {len(detections)} detections, {elapsed:.1f}s total")
+        state.set_main("dashboard")
+
+    except Exception as e:
+        state.set_status(f"Error: {e}")
+        # Still record the attempt in history
+        state.history.append(
+            {
+                "repo": state.repo_path,
+                "timestamp": datetime.now().isoformat(timespec="seconds"),
+                "error": str(e),
+            }
+        )
+
+
 def _execute_tui_command(state: TUIState, cmd: str) -> None:
     """Execute a command entered in the TUI."""
-    import subprocess
-
     # Parse command
     parts = cmd.split()
     if not parts:
@@ -529,24 +715,9 @@ def _execute_tui_command(state: TUIState, cmd: str) -> None:
             state.set_status(f"Output: {state.output_dir}")
 
     elif command == "run":
-        # Run analysis via subprocess
         state.set_status("Running analysis...")
-        try:
-            result = subprocess.run(
-                ["python", "-m", "miie", "analyze", state.repo_path, "-o", state.output_dir],
-                capture_output=True,
-                text=True,
-                timeout=300,
-            )
-            if result.returncode == 0:
-                state.set_status("Analysis complete!")
-                state.set_main("dashboard")
-            else:
-                state.set_status(f"Error: {result.stderr[:100]}")
-        except subprocess.TimeoutExpired:
-            state.set_status("Analysis timed out (300s)")
-        except Exception as e:
-            state.set_status(f"Error: {e}")
+        state.set_main("analyze")
+        _run_tui_analysis(state)
 
     elif command == "cls" or command == "clear":
         # Clear is handled by Rich Live refresh
@@ -564,6 +735,7 @@ def _read_key() -> str:
     # Windows: msvcrt
     try:
         import msvcrt
+
         if msvcrt.kbhit():
             ch = msvcrt.getch()
             if ch in (b"\x03", b"\x1b"):  # Ctrl+C or Esc
@@ -599,8 +771,9 @@ def _read_key() -> str:
 
     # Unix: termios
     try:
-        import tty
         import termios
+        import tty
+
         fd = sys.stdin.fileno()
         old = termios.tcgetattr(fd)
         try:
@@ -650,6 +823,7 @@ class MIIETuiApp:
         """Run the TUI main loop."""
         # Animated splash
         from .tui_splash import play_splash
+
         play_splash(self.console)
 
         # Main loop

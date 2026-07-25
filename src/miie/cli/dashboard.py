@@ -80,7 +80,14 @@ def display_dashboard(
     # ── Confidence Factor Breakdown (NEW) ──
     if confidence_factors:
         console.print("  [bold]Confidence Factor Breakdown (C_s = β₁ × β₂ × ... × β₆):[/bold]")
-        for fk in ["sample_size", "variance", "missing_data", "window_balance", "detector_success", "observation_quality"]:
+        for fk in [
+            "sample_size",
+            "variance",
+            "missing_data",
+            "window_balance",
+            "detector_success",
+            "observation_quality",
+        ]:
             fv = confidence_factors.get(fk)
             if fv is not None:
                 label = CONFIDENCE_FACTOR_LABELS.get(fk, fk)

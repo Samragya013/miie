@@ -33,70 +33,70 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-
 # ── Color Constants (Evidence-Backed) ──────────────────────────────────
 
 # === Scientific Health Colors ===
 # Based on traffic light paradigm (Wickens, 2002)
 # and ISO 3864 safety color standard
-HEALTHY = "bold green"           # Score >= 0.9 — verified, trustworthy
-STABLE = "green"                 # Score >= 0.7 — acceptable, minor variation
-CAUTION = "bold yellow"          # Score >= 0.5 — monitor, investigation needed
-RISK = "bold bright_red"         # Score < 0.5 — significant concern
-CRITICAL = "bold red"            # Failure, critical anomaly
+HEALTHY = "bold green"  # Score >= 0.9 — verified, trustworthy
+STABLE = "green"  # Score >= 0.7 — acceptable, minor variation
+CAUTION = "bold yellow"  # Score >= 0.5 — monitor, investigation needed
+RISK = "bold bright_red"  # Score < 0.5 — significant concern
+CRITICAL = "bold red"  # Failure, critical anomaly
 
 # === Detector Status Colors ===
 # Consistency principle: same meaning = same color across all detectors
 # Users learn "green = V CLEAR, red = X DETECTED" once
-DETECTOR_CLEAR = "bold green"     # No anomaly found
-DETECTOR_TRIGGERED = "bold red"   # Anomaly detected
-DETECTOR_ERROR = "bold yellow"    # Detector errored (can't determine)
-DETECTOR_SKIPPED = "dim"          # Insufficient data (not an error)
+DETECTOR_CLEAR = "bold green"  # No anomaly found
+DETECTOR_TRIGGERED = "bold red"  # Anomaly detected
+DETECTOR_ERROR = "bold yellow"  # Detector errored (can't determine)
+DETECTOR_SKIPPED = "dim"  # Insufficient data (not an error)
 
 # === Evidence & Confidence Colors ===
 # Blue family = information/analysis (cool = analytical objectivity)
-EVIDENCE_HIGH = "bold cyan"      # Strong evidence, high confidence
-EVIDENCE_OK = "cyan"             # Moderate evidence
-EVIDENCE_LOW = "yellow"          # Weak evidence, low confidence
-EVIDENCE_ABSENT = "dim"          # No evidence available
+EVIDENCE_HIGH = "bold cyan"  # Strong evidence, high confidence
+EVIDENCE_OK = "cyan"  # Moderate evidence
+EVIDENCE_LOW = "yellow"  # Weak evidence, low confidence
+EVIDENCE_ABSENT = "dim"  # No evidence available
 
-CONFIDENCE_VERY_HIGH = "bold green"   # Confidence >= 0.9
-CONFIDENCE_HIGH = "cyan"              # Confidence >= 0.7
-CONFIDENCE_MODERATE = "yellow"        # Confidence >= 0.5
-CONFIDENCE_LOW = "red"               # Confidence < 0.5
+CONFIDENCE_VERY_HIGH = "bold green"  # Confidence >= 0.9
+CONFIDENCE_HIGH = "cyan"  # Confidence >= 0.7
+CONFIDENCE_MODERATE = "yellow"  # Confidence >= 0.5
+CONFIDENCE_LOW = "red"  # Confidence < 0.5
 
 # === Data Provenance Colors ===
 # Cool-to-warm spectrum maps to data reliability:
 # git (blue, cool) = most reliable
 # proxy (yellow) = derived/estimated
 # API (green) = external source
-SOURCE_GIT = "blue"              # Direct git extraction
-SOURCE_GITHUB = "green"          # GitHub API
-SOURCE_PROXY = "yellow"          # Coverage proxy
+SOURCE_GIT = "blue"  # Direct git extraction
+SOURCE_GITHUB = "green"  # GitHub API
+SOURCE_PROXY = "yellow"  # Coverage proxy
 
 # === Progress/Status Colors ===
 # Temporal progression: dim (pending) -> cyan (running) -> green (done)
-STAGE_PENDING = "dim"            # Not yet started
-STAGE_RUNNING = "bold cyan"      # Currently executing
-STAGE_COMPLETE = "bold green"    # Finished successfully
-STAGE_FAILED = "bold red"        # Failed
+STAGE_PENDING = "dim"  # Not yet started
+STAGE_RUNNING = "bold cyan"  # Currently executing
+STAGE_COMPLETE = "bold green"  # Finished successfully
+STAGE_FAILED = "bold red"  # Failed
 
 # === UI Structural Colors ===
 # Non-semantic, used for visual hierarchy only
-BORDER_PRIMARY = "bright_cyan"   # Main panel borders
-BORDER_SUCCESS = "green"         # Success state borders
-BORDER_WARNING = "yellow"        # Warning state borders
-BORDER_ERROR = "red"             # Error state borders
-BORDER_NEUTRAL = "dim white"     # Inactive/neutral borders
+BORDER_PRIMARY = "bright_cyan"  # Main panel borders
+BORDER_SUCCESS = "green"  # Success state borders
+BORDER_WARNING = "yellow"  # Warning state borders
+BORDER_ERROR = "red"  # Error state borders
+BORDER_NEUTRAL = "dim white"  # Inactive/neutral borders
 
-HEADING_PRIMARY = "bold cyan"    # Section headings
-HEADING_SECONDARY = "bold white" # Sub-section headings
-LABEL_DIM = "dim"               # Labels, secondary info
-VALUE_BOLD = "bold"             # Primary values
-ACCENT = "bright_cyan"          # Accent highlights
+HEADING_PRIMARY = "bold cyan"  # Section headings
+HEADING_SECONDARY = "bold white"  # Sub-section headings
+LABEL_DIM = "dim"  # Labels, secondary info
+VALUE_BOLD = "bold"  # Primary values
+ACCENT = "bright_cyan"  # Accent highlights
 
 
 # ── Color Mapping Functions ────────────────────────────────────────────
+
 
 def score_to_color(score: float) -> str:
     """Map a 0.0-1.0 score to its semantic color.
@@ -239,6 +239,7 @@ def stage_status_icon(status: str) -> str:
 
 # ── Score Bar Generation ──────────────────────────────────────────────
 
+
 def score_bar(score: float, width: int = 20) -> str:
     """Generate a visual score bar with semantic coloring.
 
@@ -268,6 +269,7 @@ def score_bar_labeled(score: float, width: int = 20) -> str:
 
 
 # ── Verdict Color Logic ───────────────────────────────────────────────
+
 
 def verdict_color(
     integrity_score: float,

@@ -77,6 +77,7 @@ def cli(ctx, config_file, global_output, verbose, debug):
             return
         # Launch TUI
         from .tui import launch_tui
+
         launch_tui()
         ctx.exit()
         return
@@ -85,6 +86,7 @@ def cli(ctx, config_file, global_output, verbose, debug):
     if ctx.invoked_subcommand not in (None, "help") and not verbose:
         try:
             from .onboarding import is_first_run, run_onboarding
+
             if is_first_run():
                 run_onboarding()
         except Exception:
@@ -445,16 +447,12 @@ def _display_confidence_band_header(
         min_key = min(factors, key=factors.get)
         min_val = factors[min_key]
         min_name = factor_names.get(min_key, min_key)
-        console.print(
-            f"  [dim]Bottleneck: {min_name} = {min_val:.3f}[/dim]"
-        )
+        console.print(f"  [dim]Bottleneck: {min_name} = {min_val:.3f}[/dim]")
 
     # Low-confidence warning
     if band == "low":
         console.print()
-        console.print(
-            "  [bold red]WARNING:[/bold red] Too few observations for reliable statistical tests."
-        )
+        console.print("  [bold red]WARNING:[/bold red] Too few observations for reliable statistical tests.")
         console.print(
             "  [dim]Results may be misleading. Consider analyzing more history"
             " or changing the window strategy.[/dim]"
@@ -491,9 +489,7 @@ def _display_data_quality(
         min_size = min(window_sizes)
         max_size = max(window_sizes)
         console.print(f"  Windows: {len(windows)}")
-        console.print(
-            f"  Commits per window: {min_size} min, {avg_size:.0f} avg, {max_size} max"
-        )
+        console.print(f"  Commits per window: {min_size} min, {avg_size:.0f} avg, {max_size} max")
 
     # Observation coverage per metric
     if metric_dataframe and metric_dataframe.metrics:
@@ -578,9 +574,7 @@ def _compress_large_reports(report_paths: dict, total_commits: int) -> None:
             pass  # Compression is best-effort; don't fail the pipeline
 
     if compressed_count > 0:
-        console.print(
-            f"  [dim]Evidence compressed: {compressed_count} file(s)[/dim]"
-        )
+        console.print(f"  [dim]Evidence compressed: {compressed_count} file(s)[/dim]")
 
 
 # ---------------------------------------------------------------------------
@@ -617,6 +611,7 @@ def _run_pipeline_rich(
 
     # Override global git timeout from CLI knob
     import miie.utils.git as _git_module
+
     _git_module.GIT_TIMEOUT = timeout
 
     from ..processing.detection.correlation_breakdown_detector import (
@@ -686,7 +681,10 @@ def _run_pipeline_rich(
 
         # --- Stage 3: Metric Extraction (observation path) ---
         progress.stage_start("extraction")
-        from ..processing.extraction.engine import ExtractionEngine as _ObsExtractionEngine
+        from ..processing.extraction.engine import (
+            ExtractionEngine as _ObsExtractionEngine,
+        )
+
         extraction_engine = _ObsExtractionEngine()
         since_dt = datetime.fromisoformat(since) if since else None
         until_dt = datetime.fromisoformat(until) if until else None
@@ -705,11 +703,12 @@ def _run_pipeline_rich(
 
         # --- Stage 4: Window Generation (observation path) ---
         progress.stage_start("segmentation")
-        from ..processing.observation.window_builder import ObservationWindowBuilder as _ObsWindowBuilder
         from ..processing.observation.models import WindowConfig as _ObsWindowConfig
+        from ..processing.observation.window_builder import (
+            ObservationWindowBuilder as _ObsWindowBuilder,
+        )
 
-        _STRATEGY_MAP = {"time": "temporal", "commit": "commit_count",
-                         "release": "temporal", "custom": "custom"}
+        _STRATEGY_MAP = {"time": "temporal", "commit": "commit_count", "release": "temporal", "custom": "custom"}
         obs_strategy = _STRATEGY_MAP.get(window_strategy, "temporal")
         window_config = _ObsWindowConfig(
             strategy=obs_strategy,
@@ -733,34 +732,37 @@ def _run_pipeline_rich(
         # Rebuild MetricDataFrame from observation_windows to align window IDs
         # The extraction engine creates a single window w00, but ObservationWindowBuilder
         # creates multiple windows. We need the MetricDataFrame to use the same window IDs.
-        from ..processing.extraction.metric_extractor import MetricExtractor as _MetricExtractor
-        from ..processing.observation.models import ObservationCollection as _ObsCollection
+        from ..processing.extraction.metric_extractor import (
+            MetricExtractor as _MetricExtractor,
+        )
+        from ..processing.observation.models import (
+            ObservationCollection as _ObsCollection,
+        )
+
         _rebuilt_collection = _ObsCollection(
             collection_id=observation_collection.collection_id,
             repository_id=observation_collection.repository_id,
             analysis_id=observation_collection.analysis_id,
             windows=observation_windows,
             total_observations=sum(len(ow.observations) for ow in observation_windows),
-            total_metrics=len(set(
-                obs.metric_id
-                for ow in observation_windows
-                for obs in ow.observations
-            )),
+            total_metrics=len(set(obs.metric_id for ow in observation_windows for obs in ow.observations)),
             extraction_timestamp=observation_collection.extraction_timestamp,
         )
         metric_dataframe = _MetricExtractor().extract_metrics(
-            _rebuilt_collection, metric_list=list(metrics),
+            _rebuilt_collection,
+            metric_list=list(metrics),
         )
 
         # Convert observation windows to legacy WindowDefinitions for scoring/evidence
         from ..schemas.models import WindowDefinition as _WinDef
+
         windows = []
         for ow in observation_windows:
             wd = _WinDef(
                 window_id=ow.window_id,
-                start_date=ow.start_boundary[:10] if hasattr(ow, 'start_boundary') and ow.start_boundary else None,
-                end_date=ow.end_boundary[:10] if hasattr(ow, 'end_boundary') and ow.end_boundary else None,
-                commits=len(ow.observations) if hasattr(ow, 'observations') else 0,
+                start_date=ow.start_boundary[:10] if hasattr(ow, "start_boundary") and ow.start_boundary else None,
+                end_date=ow.end_boundary[:10] if hasattr(ow, "end_boundary") and ow.end_boundary else None,
+                commits=len(ow.observations) if hasattr(ow, "observations") else 0,
                 strategy=obs_strategy,
                 size_config={"size": window_size},
             )
@@ -1000,9 +1002,7 @@ def _run_pipeline_rich(
                 "  [bold yellow]TIP:[/bold yellow] Monorepo detected. "
                 "Use [bold]--package <path>[/bold] to analyze a specific package."
             )
-            console.print(
-                "  [dim]Example: miie analyze ./monorepo -p packages/core[/dim]"
-            )
+            console.print("  [dim]Example: miie analyze ./monorepo -p packages/core[/dim]")
 
         # --- Display Dashboard (Premium) ---
         display_executive_summary(
@@ -1221,14 +1221,18 @@ def detect(ctx, repo_path, metrics, detectors, seed, auth_token):
         ctx_ingested = RepositoryIngestionEngine(auth_token=resolved_token).ingest(repo_path)
         extraction_engine = ExtractionEngine()
         observation_collection, mdf = extraction_engine.extract(
-            context=ctx_ingested, metric_list=list(metrics),
+            context=ctx_ingested,
+            metric_list=list(metrics),
         )
         window_config = WindowConfig(strategy="temporal", window_size=7, min_observations=2)
         builder = ObservationWindowBuilder()
         builder_result = builder.build(collection=observation_collection, config=window_config)
         observation_windows = builder_result.windows
         if len(observation_windows) < 2:
-            click.echo(f"[WARNING] Insufficient windows: {len(observation_windows)} (need >= 2). Adjust time range or window size.", err=True)
+            click.echo(
+                f"[WARNING] Insufficient windows: {len(observation_windows)} (need >= 2). Adjust time range or window size.",
+                err=True,
+            )
             sys.exit(3)
         results = DetectorDispatcherEngine(registry).invoke_observations(
             observation_windows=observation_windows,
@@ -1377,7 +1381,8 @@ def explain(ctx, repo_path, metrics, metric_filter, detector_filter, seed):
         ctx_ingested = RepositoryIngestionEngine().ingest(repo_path)
         extraction_engine = ExtractionEngine()
         observation_collection, mdf = extraction_engine.extract(
-            context=ctx_ingested, metric_list=list(metrics),
+            context=ctx_ingested,
+            metric_list=list(metrics),
         )
         window_config = WindowConfig(strategy="temporal", window_size=7, min_observations=2)
         builder = ObservationWindowBuilder()
@@ -1387,37 +1392,40 @@ def explain(ctx, repo_path, metrics, metric_filter, detector_filter, seed):
             click.echo(f"[WARNING] Insufficient windows: {len(observation_windows)} (need >= 2).", err=True)
             sys.exit(3)
         # Rebuild MetricDataFrame from observation_windows to align window IDs
-        from ..processing.extraction.metric_extractor import MetricExtractor as _MetricExtractor
-        from ..processing.observation.models import ObservationCollection as _ObsCollection
+        from ..processing.extraction.metric_extractor import (
+            MetricExtractor as _MetricExtractor,
+        )
+        from ..processing.observation.models import (
+            ObservationCollection as _ObsCollection,
+        )
+
         _rebuilt_collection = _ObsCollection(
             collection_id=observation_collection.collection_id,
             repository_id=observation_collection.repository_id,
             analysis_id=observation_collection.analysis_id,
             windows=observation_windows,
             total_observations=sum(len(ow.observations) for ow in observation_windows),
-            total_metrics=len(set(
-                obs.metric_id
-                for ow in observation_windows
-                for obs in ow.observations
-            )),
+            total_metrics=len(set(obs.metric_id for ow in observation_windows for obs in ow.observations)),
             extraction_timestamp=observation_collection.extraction_timestamp,
         )
         mdf = _MetricExtractor().extract_metrics(
-            _rebuilt_collection, metric_list=list(metrics),
+            _rebuilt_collection,
+            metric_list=list(metrics),
         )
         det_results = DetectorDispatcherEngine(registry).invoke_observations(
             observation_windows=observation_windows,
         )
         # Convert observation windows to legacy WindowDefinitions for scoring/evidence
         from ..schemas.models import WindowDefinition as _WinDef
+
         _STRATEGY_MAP = {"time": "temporal", "commit": "commit_count"}
         wins = []
         for ow in observation_windows:
             wd = _WinDef(
                 window_id=ow.window_id,
-                start_date=ow.start_boundary[:10] if hasattr(ow, 'start_boundary') and ow.start_boundary else None,
-                end_date=ow.end_boundary[:10] if hasattr(ow, 'end_boundary') and ow.end_boundary else None,
-                commits=len(ow.observations) if hasattr(ow, 'observations') else 0,
+                start_date=ow.start_boundary[:10] if hasattr(ow, "start_boundary") and ow.start_boundary else None,
+                end_date=ow.end_boundary[:10] if hasattr(ow, "end_boundary") and ow.end_boundary else None,
+                commits=len(ow.observations) if hasattr(ow, "observations") else 0,
                 strategy=_STRATEGY_MAP.get("time", "temporal"),
                 size_config={"size": 7},
             )
@@ -1498,7 +1506,8 @@ def export(ctx, repo_path, formats, output_dir, seed):
         ctx_ingested = RepositoryIngestionEngine().ingest(repo_path)
         extraction_engine = ExtractionEngine()
         observation_collection, mdf = extraction_engine.extract(
-            context=ctx_ingested, metric_list=["M-02", "M-06"],
+            context=ctx_ingested,
+            metric_list=["M-02", "M-06"],
         )
         window_config = WindowConfig(strategy="temporal", window_size=7, min_observations=2)
         builder = ObservationWindowBuilder()
@@ -1508,37 +1517,40 @@ def export(ctx, repo_path, formats, output_dir, seed):
             click.echo(f"[WARNING] Insufficient windows: {len(observation_windows)} (need >= 2).", err=True)
             sys.exit(3)
         # Rebuild MetricDataFrame from observation_windows to align window IDs
-        from ..processing.extraction.metric_extractor import MetricExtractor as _MetricExtractor
-        from ..processing.observation.models import ObservationCollection as _ObsCollection
+        from ..processing.extraction.metric_extractor import (
+            MetricExtractor as _MetricExtractor,
+        )
+        from ..processing.observation.models import (
+            ObservationCollection as _ObsCollection,
+        )
+
         _rebuilt_collection = _ObsCollection(
             collection_id=observation_collection.collection_id,
             repository_id=observation_collection.repository_id,
             analysis_id=observation_collection.analysis_id,
             windows=observation_windows,
             total_observations=sum(len(ow.observations) for ow in observation_windows),
-            total_metrics=len(set(
-                obs.metric_id
-                for ow in observation_windows
-                for obs in ow.observations
-            )),
+            total_metrics=len(set(obs.metric_id for ow in observation_windows for obs in ow.observations)),
             extraction_timestamp=observation_collection.extraction_timestamp,
         )
         mdf = _MetricExtractor().extract_metrics(
-            _rebuilt_collection, metric_list=["M-02", "M-06"],
+            _rebuilt_collection,
+            metric_list=["M-02", "M-06"],
         )
         det_results = DetectorDispatcherEngine(registry).invoke_observations(
             observation_windows=observation_windows,
         )
         # Convert observation windows to legacy WindowDefinitions for scoring
         from ..schemas.models import WindowDefinition as _WinDef
+
         _STRATEGY_MAP = {"time": "temporal", "commit": "commit_count"}
         wins = []
         for ow in observation_windows:
             wd = _WinDef(
                 window_id=ow.window_id,
-                start_date=ow.start_boundary[:10] if hasattr(ow, 'start_boundary') and ow.start_boundary else None,
-                end_date=ow.end_boundary[:10] if hasattr(ow, 'end_boundary') and ow.end_boundary else None,
-                commits=len(ow.observations) if hasattr(ow, 'observations') else 0,
+                start_date=ow.start_boundary[:10] if hasattr(ow, "start_boundary") and ow.start_boundary else None,
+                end_date=ow.end_boundary[:10] if hasattr(ow, "end_boundary") and ow.end_boundary else None,
+                commits=len(ow.observations) if hasattr(ow, "observations") else 0,
                 strategy=_STRATEGY_MAP.get("time", "temporal"),
                 size_config={"size": 7},
             )
@@ -1875,8 +1887,8 @@ def shell(ctx, repo_path, output, no_tui):
     if no_tui:
         # Classic shell mode
         from .display import console as _console
-        from .slash_commands import execute_command, print_welcome
         from .interactive import add_to_recent
+        from .slash_commands import execute_command, print_welcome
 
         context = {
             "repo_path": repo_path or ".",
@@ -1930,6 +1942,7 @@ def shell(ctx, repo_path, output, no_tui):
     else:
         # Launch full-screen TUI
         from .tui import launch_tui
+
         launch_tui()
 
 
@@ -1977,8 +1990,9 @@ def _run_shell_export(context: dict) -> None:
 @cli.command()
 def doctor():
     """Run system health checks and report status."""
-    from rich.table import Table
     from rich.panel import Panel
+    from rich.table import Table
+
     from .display import console
 
     checks = []
@@ -2029,18 +2043,25 @@ def doctor():
     # GitHub token
     gh_token = os.environ.get("GITHUB_TOKEN", "")
     gh_ok = len(gh_token) > 0
-    table.add_row("GitHub token", "[green]SET[/green]" if gh_ok else "[yellow]NOT SET[/yellow]",
-                   f"{gh_token[:4]}...{gh_token[-4:]}" if len(gh_token) > 8 else "(empty)")
+    table.add_row(
+        "GitHub token",
+        "[green]SET[/green]" if gh_ok else "[yellow]NOT SET[/yellow]",
+        f"{gh_token[:4]}...{gh_token[-4:]}" if len(gh_token) > 8 else "(empty)",
+    )
 
     # .env file
     env_file = Path(".env")
     env_exists = env_file.exists()
-    table.add_row(".env file", "[green]EXISTS[/green]" if env_exists else "[yellow]NOT FOUND[/yellow]",
-                   str(env_file.resolve()) if env_exists else "optional")
+    table.add_row(
+        ".env file",
+        "[green]EXISTS[/green]" if env_exists else "[yellow]NOT FOUND[/yellow]",
+        str(env_file.resolve()) if env_exists else "optional",
+    )
 
     # Frozen contracts
     try:
         from miie.contracts import interfaces
+
         checks.append(("Frozen contracts", True, "loaded"))
         table.add_row("Frozen contracts", "[green]OK[/green]", "interfaces loaded")
     except Exception as e:
@@ -2050,6 +2071,7 @@ def doctor():
     # Config loader
     try:
         from miie.config.loader import load_config
+
         checks.append(("Config loader", True, "loaded"))
         table.add_row("Config loader", "[green]OK[/green]", "load_config available")
     except Exception as e:
@@ -2067,8 +2089,9 @@ def doctor():
         console.print(Panel("[bold green]All checks passed[/bold green]", border_style="green"))
     else:
         failed = [name for name, ok, _ in checks if not ok]
-        console.print(Panel(f"[bold red]{total - passed} check(s) failed: {', '.join(failed)}[/bold red]",
-                            border_style="red"))
+        console.print(
+            Panel(f"[bold red]{total - passed} check(s) failed: {', '.join(failed)}[/bold red]", border_style="red")
+        )
 
 
 if __name__ == "__main__":

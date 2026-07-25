@@ -18,7 +18,6 @@ from pathlib import Path
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Workspace Detection (Issues 4, 5, 6)
 # ---------------------------------------------------------------------------
@@ -35,9 +34,7 @@ class TestWorkspaceNestedDetection:
             root = Path(td)
             nested = root / "monorepo" / "packages"
             nested.mkdir(parents=True)
-            (nested / "pnpm-workspace.yaml").write_text(
-                "packages:\n  - 'apps/*'\n", encoding="utf-8"
-            )
+            (nested / "pnpm-workspace.yaml").write_text("packages:\n  - 'apps/*'\n", encoding="utf-8")
             result = detect_workspace(root)
             assert result is not None
             assert result.tool == "pnpm"
@@ -49,9 +46,7 @@ class TestWorkspaceNestedDetection:
 
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
-            (root / "pnpm-workspace.yaml").write_text(
-                "packages:\n  - 'packages/*'\n", encoding="utf-8"
-            )
+            (root / "pnpm-workspace.yaml").write_text("packages:\n  - 'packages/*'\n", encoding="utf-8")
             result = detect_workspace(root)
             assert result is not None
             assert result.tool == "pnpm"
@@ -67,9 +62,7 @@ class TestWorkspaceNestedDetection:
             for i in range(5):
                 deep = deep / f"level{i}"
                 deep.mkdir()
-            (deep / "pnpm-workspace.yaml").write_text(
-                "packages: []\n", encoding="utf-8"
-            )
+            (deep / "pnpm-workspace.yaml").write_text("packages: []\n", encoding="utf-8")
             # Should NOT find it (depth 5 > max_depth 3)
             result = _detect_workspace_recursive(root, root, depth=0, max_depth=3)
             assert result is None
@@ -157,9 +150,7 @@ class TestWorkspaceSymlinkSafety:
             repo_root.mkdir()
             external = Path(td) / "external"
             external.mkdir()
-            (external / "pnpm-workspace.yaml").write_text(
-                "packages: []\n", encoding="utf-8"
-            )
+            (external / "pnpm-workspace.yaml").write_text("packages: []\n", encoding="utf-8")
             # Create symlink inside repo pointing outside
             link = repo_root / "link_to_external"
             try:
@@ -178,9 +169,7 @@ class TestWorkspaceSymlinkSafety:
             repo_root.mkdir()
             inner = repo_root / "inner"
             inner.mkdir()
-            (inner / "pnpm-workspace.yaml").write_text(
-                "packages: ['apps/*']\n", encoding="utf-8"
-            )
+            (inner / "pnpm-workspace.yaml").write_text("packages: ['apps/*']\n", encoding="utf-8")
             link = repo_root / "link_to_inner"
             try:
                 link.symlink_to(inner)
@@ -322,7 +311,9 @@ class TestObservationLinking:
             contributor_count=5,
             is_remote=False,
         )
-        mdf = MetricDataFrame(repo_id="test", run_id="run1", timestamp=now, metrics={"M-02": {"default": [0.1, 0.2, 0.3]}})
+        mdf = MetricDataFrame(
+            repo_id="test", run_id="run1", timestamp=now, metrics={"M-02": {"default": [0.1, 0.2, 0.3]}}
+        )
         window = WindowDefinition(
             window_id="w01", start_date=now, end_date=now + timedelta(days=7), commits=10, strategy="temporal"
         )

@@ -26,6 +26,7 @@ class TestFailOnLowConfidenceFlag:
 
     def test_flag_exists_in_analyze_command(self):
         from click.testing import CliRunner
+
         from miie.cli import cli
 
         runner = CliRunner()
@@ -34,8 +35,10 @@ class TestFailOnLowConfidenceFlag:
         assert "fail-on-low-confidence" in result.output.lower()
 
     def test_flag_in_pipeline_signature(self):
-        from miie.cli import _run_pipeline_rich
         import inspect
+
+        from miie.cli import _run_pipeline_rich
+
         sig = inspect.signature(_run_pipeline_rich)
         assert "fail_on_low_confidence" in sig.parameters
 
@@ -45,22 +48,27 @@ class TestConfidenceBandDisplay:
 
     def test_high_band(self):
         from miie.cli import _display_confidence_band_header
+
         _display_confidence_band_header("high", 0.95, {"sample_size": 0.9, "variance": 0.8})
 
     def test_low_band(self):
         from miie.cli import _display_confidence_band_header
+
         _display_confidence_band_header("low", 0.2, {"sample_size": 0.1, "variance": 0.3})
 
     def test_medium_band(self):
         from miie.cli import _display_confidence_band_header
+
         _display_confidence_band_header("medium", 0.65, {"sample_size": 0.7})
 
     def test_no_factors(self):
         from miie.cli import _display_confidence_band_header
+
         _display_confidence_band_header("high", 0.9, None)
 
     def test_empty_factors(self):
         from miie.cli import _display_confidence_band_header
+
         _display_confidence_band_header("high", 0.9, {})
 
 
@@ -69,7 +77,9 @@ class TestDataQualitySection:
 
     def test_with_windows(self):
         from datetime import timedelta
+
         from miie.cli import _display_data_quality
+
         mock_windows = []
         base = date(2024, 1, 1)
         for i in range(3):
@@ -88,11 +98,14 @@ class TestDataQualitySection:
 
     def test_empty_windows(self):
         from miie.cli import _display_data_quality
+
         _display_data_quality([], MagicMock(), 0)
 
     def test_with_gaps(self):
         from datetime import timedelta
+
         from miie.cli import _display_data_quality
+
         mock_windows = []
         base = date(2024, 1, 1)
         for i in range(3):
@@ -111,12 +124,14 @@ class TestEvidenceCompression:
 
     def test_skips_small_repos(self):
         from miie.cli import _compress_large_reports
+
         report_paths = {"json": "/tmp/test.json"}
         _compress_large_reports(report_paths, 5000)
         assert "json_compressed" not in report_paths
 
     def test_skips_small_files(self):
         from miie.cli import _compress_large_reports
+
         with tempfile.NamedTemporaryFile(suffix=".json", mode="w", delete=False) as f:
             json.dump({"test": "data"}, f)
             f.flush()
@@ -129,6 +144,7 @@ class TestEvidenceCompression:
 
     def test_compresses_large_files(self):
         from miie.cli import _compress_large_reports
+
         large_data = {"data": "x" * 1_100_000}
         with tempfile.NamedTemporaryFile(suffix=".json", mode="w", delete=False) as f:
             json.dump(large_data, f)
@@ -153,15 +169,20 @@ class TestExecutiveSummaryBand:
 
     def test_accepts_confidence_band(self):
         from miie.cli.premium_tui import display_executive_summary
+
         with patch("miie.cli.premium_tui.console") as mc:
             with patch("miie.cli.premium_tui.get_layout") as ml:
                 ml.return_value = MagicMock(
-                    show_detail=True, show_timing=True,
-                    score_bar_width=20, max_detail_length=30,
+                    show_detail=True,
+                    show_timing=True,
+                    score_bar_width=20,
+                    max_detail_length=30,
                 )
                 display_executive_summary(
-                    integrity_score=0.95, confidence_score=0.3,
-                    total_commits=100, contributor_count=5,
+                    integrity_score=0.95,
+                    confidence_score=0.3,
+                    total_commits=100,
+                    contributor_count=5,
                     window_count=3,
                     detector_outputs={"D-01": {"drift_detected": False}},
                     confidence_band="low",
@@ -171,15 +192,21 @@ class TestExecutiveSummaryBand:
 
     def test_default_band(self):
         from miie.cli.premium_tui import display_executive_summary
+
         with patch("miie.cli.premium_tui.console") as mc:
             with patch("miie.cli.premium_tui.get_layout") as ml:
                 ml.return_value = MagicMock(
-                    show_detail=False, show_timing=False,
-                    score_bar_width=20, max_detail_length=30,
+                    show_detail=False,
+                    show_timing=False,
+                    score_bar_width=20,
+                    max_detail_length=30,
                 )
                 display_executive_summary(
-                    integrity_score=1.0, confidence_score=0.9,
-                    total_commits=100, contributor_count=5,
-                    window_count=3, detector_outputs={},
+                    integrity_score=1.0,
+                    confidence_score=0.9,
+                    total_commits=100,
+                    contributor_count=5,
+                    window_count=3,
+                    detector_outputs={},
                 )
                 assert mc.print.called

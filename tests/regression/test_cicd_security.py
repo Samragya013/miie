@@ -11,6 +11,7 @@ Verifies GitHub Actions workflows are free from:
 - Unused OIDC permissions
 - Artifact downloads without integrity checks
 """
+
 import os
 import re
 from pathlib import Path
@@ -63,8 +64,7 @@ class TestCIWorkflowSecurity:
             if m:
                 action, ref = m.groups()
                 # SHA is 40 hex chars
-                assert re.match(r"^[a-f0-9]{40}$", ref), \
-                    f"Unpinned action at line {i}: {action}@{ref}"
+                assert re.match(r"^[a-f0-9]{40}$", ref), f"Unpinned action at line {i}: {action}@{ref}"
 
     def test_no_workflow_injection(self):
         """Context variables should not appear in run: blocks."""
@@ -78,10 +78,8 @@ class TestCIWorkflowSecurity:
             elif in_run and stripped and not stripped.startswith(" ") and not stripped.startswith("#"):
                 in_run = False
             if in_run:
-                assert "github.event." not in stripped, \
-                    f"Workflow injection risk at line {i}: {stripped}"
-                assert "github.head_ref" not in stripped, \
-                    f"Workflow injection risk at line {i}: {stripped}"
+                assert "github.event." not in stripped, f"Workflow injection risk at line {i}: {stripped}"
+                assert "github.head_ref" not in stripped, f"Workflow injection risk at line {i}: {stripped}"
 
     def test_no_secrets_in_run_blocks(self):
         """Secrets should not be echoed or printed in run blocks."""
@@ -96,8 +94,9 @@ class TestCIWorkflowSecurity:
                 in_run = False
             if in_run:
                 if "secrets." in stripped:
-                    assert "echo" not in stripped and "print" not in stripped, \
-                        f"Secret potentially logged at line {i}: {stripped}"
+                    assert (
+                        "echo" not in stripped and "print" not in stripped
+                    ), f"Secret potentially logged at line {i}: {stripped}"
 
     def test_no_oidc_permission(self):
         content = _load_workflow("ci.yml")
@@ -131,13 +130,10 @@ class TestReleaseWorkflowSecurity:
         """id-token: write should only be present if OIDC is configured."""
         content = _load_workflow("release.yml")
         has_oidc_provider = (
-            "configure-aws-credentials" in content or
-            "google-github-actions" in content or
-            "azure/login" in content
+            "configure-aws-credentials" in content or "google-github-actions" in content or "azure/login" in content
         )
         if "id-token: write" in content:
-            assert has_oidc_provider, \
-                "id-token: write declared but no OIDC provider configured"
+            assert has_oidc_provider, "id-token: write declared but no OIDC provider configured"
 
     def test_all_actions_sha_pinned(self):
         content = _load_workflow("release.yml")
@@ -145,8 +141,7 @@ class TestReleaseWorkflowSecurity:
             m = re.search(r"uses:\s+(\S+)@(\S+)", line)
             if m:
                 action, ref = m.groups()
-                assert re.match(r"^[a-f0-9]{40}$", ref), \
-                    f"Unpinned action at line {i}: {action}@{ref}"
+                assert re.match(r"^[a-f0-9]{40}$", ref), f"Unpinned action at line {i}: {action}@{ref}"
 
     def test_no_workflow_injection(self):
         content = _load_workflow("release.yml")
@@ -159,10 +154,8 @@ class TestReleaseWorkflowSecurity:
             elif in_run and stripped and not stripped.startswith(" ") and not stripped.startswith("#"):
                 in_run = False
             if in_run:
-                assert "github.event." not in stripped, \
-                    f"Workflow injection risk at line {i}: {stripped}"
-                assert "github.head_ref" not in stripped, \
-                    f"Workflow injection risk at line {i}: {stripped}"
+                assert "github.event." not in stripped, f"Workflow injection risk at line {i}: {stripped}"
+                assert "github.head_ref" not in stripped, f"Workflow injection risk at line {i}: {stripped}"
 
     def test_secret_only_in_env_not_logged(self):
         """Secrets should be passed as env/parameters, not echoed."""
@@ -176,16 +169,18 @@ class TestReleaseWorkflowSecurity:
             elif in_run and stripped and not stripped.startswith(" ") and not stripped.startswith("#"):
                 in_run = False
             if in_run and "secrets." in stripped:
-                assert "echo" not in stripped and "print" not in stripped, \
-                    f"Secret potentially logged at line {i}: {stripped}"
+                assert (
+                    "echo" not in stripped and "print" not in stripped
+                ), f"Secret potentially logged at line {i}: {stripped}"
 
     def test_artifact_integrity_check(self):
         """Artifact downloads should have integrity verification."""
         content = _load_workflow("release.yml")
         if "download-artifact" in content:
             # Should have sha256sum or similar verification after download
-            assert "sha256" in content.lower() or "checksum" in content.lower() or "verify" in content.lower(), \
-                "Artifact download without integrity check"
+            assert (
+                "sha256" in content.lower() or "checksum" in content.lower() or "verify" in content.lower()
+            ), "Artifact download without integrity check"
 
     def test_no_workflow_dispatch(self):
         content = _load_workflow("release.yml")
@@ -210,15 +205,13 @@ class TestCrossWorkflowSecurity:
         for wf_file in WORKFLOWS_DIR.glob("*.yml"):
             content = wf_file.read_text(encoding="utf-8")
             if "pull_request" in content:
-                assert "self-hosted" not in content, \
-                    f"{wf_file.name}: combines pull_request with self-hosted runner"
+                assert "self-hosted" not in content, f"{wf_file.name}: combines pull_request with self-hosted runner"
 
     def test_all_workflows_have_permissions(self):
         """Every workflow should have an explicit permissions block."""
         for wf_file in WORKFLOWS_DIR.glob("*.yml"):
             content = wf_file.read_text(encoding="utf-8")
-            assert "permissions:" in content, \
-                f"{wf_file.name}: missing explicit permissions block"
+            assert "permissions:" in content, f"{wf_file.name}: missing explicit permissions block"
 
     def test_no_eval_in_run_blocks(self):
         """No workflow should use eval in run blocks."""
@@ -239,5 +232,4 @@ class TestCrossWorkflowSecurity:
         """No workflow should pipe curl output to shell."""
         for wf_file in WORKFLOWS_DIR.glob("*.yml"):
             content = wf_file.read_text(encoding="utf-8")
-            assert "curl | bash" not in content and "curl | sh" not in content, \
-                f"{wf_file.name}: curl piped to shell"
+            assert "curl | bash" not in content and "curl | sh" not in content, f"{wf_file.name}: curl piped to shell"

@@ -21,6 +21,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from .design_tokens import TOKENS
 from .display import console
 from .responsive import get_layout
 from .semantic_colors import (
@@ -37,10 +38,9 @@ from .semantic_colors import (
     score_to_label,
     source_to_label,
 )
-from .design_tokens import TOKENS
-
 
 # ── Metric Card Renderer ─────────────────────────────────────────────
+
 
 def render_metric_card(
     metric_id: str,
@@ -249,6 +249,7 @@ def render_detector_detail(
 
 
 # ── Full Dashboard Renderer ───────────────────────────────────────────
+
 
 def render_scientific_dashboard(
     integrity_score: float,

@@ -137,15 +137,24 @@ class ExtractionEngine:
             # Submit git extraction (always needed for M-02, M-06, etc.)
             git_future = executor.submit(
                 self._extract_git,
-                provider, context, git_metrics, since, until, exclude_bots,
-                max_commits, package_prefixes,
+                provider,
+                context,
+                git_metrics,
+                since,
+                until,
+                exclude_bots,
+                max_commits,
+                package_prefixes,
             )
 
             # Submit M-05 GitHub PR extraction in parallel (if requested)
             m05_future = None
             if needs_m05:
                 m05_future = executor.submit(
-                    self._extract_github_pr, context, since=since, until=until,
+                    self._extract_github_pr,
+                    context,
+                    since=since,
+                    until=until,
                 )
 
             # Wait for git extraction
@@ -283,8 +292,12 @@ class ExtractionEngine:
         """Extract git-based observations. Thread-safe."""
         try:
             provider_ctx = self._build_provider_context(
-                context, since=since, until=until, exclude_bots=exclude_bots,
-                max_commits=max_commits, package_prefixes=package_prefixes,
+                context,
+                since=since,
+                until=until,
+                exclude_bots=exclude_bots,
+                max_commits=max_commits,
+                package_prefixes=package_prefixes,
             )
             return provider.extract_observations(provider_ctx, metric_list)
         except Exception as exc:
@@ -304,6 +317,7 @@ class ExtractionEngine:
         # Ensure .env is loaded for GitHub token discovery
         try:
             from dotenv import load_dotenv
+
             # Search for .env from project root (src/miie → up 2 levels)
             env_path = Path(__file__).resolve().parents[3] / ".env"
             if env_path.exists():
@@ -333,9 +347,7 @@ class ExtractionEngine:
         from miie.providers.context import ProviderContext
 
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        analysis_id = hashlib.sha256(
-            f"{context.repo_id}:gh:{uuid.uuid4().hex[:8]}:{now_iso}".encode()
-        ).hexdigest()[:16]
+        analysis_id = hashlib.sha256(f"{context.repo_id}:gh:{uuid.uuid4().hex[:8]}:{now_iso}".encode()).hexdigest()[:16]
 
         provider_ctx = ProviderContext(
             repo_path=str(context.local_path),
@@ -385,8 +397,11 @@ class ExtractionEngine:
         try:
             result = subprocess.run(
                 ["git", "remote", "get-url", "origin"],
-                capture_output=True, text=True, encoding="utf-8",
-                timeout=10, cwd=str(context.local_path),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=10,
+                cwd=str(context.local_path),
                 env=_GIT_SAFE_ENV,
             )
             if result.returncode == 0:

@@ -11,6 +11,7 @@ Covers:
 - Token-in-URL prevention (GIT_ASKPASS)
 - Sensitive directory blocklist
 """
+
 import os
 import re
 import threading
@@ -194,7 +195,7 @@ class TestOutputDirValidation:
     def test_output_dir_rejects_special_chars(self):
         """The inline validation checks for <>\"|?*."""
         raw_output = "/tmp/output<>test"
-        assert re.search(r'[<>\"|?*]', raw_output)
+        assert re.search(r"[<>\"|?*]", raw_output)
 
     def test_output_dir_rejects_sensitive_system_dirs(self):
         """The inline validation blocks /etc, /proc, /sys, /dev, /bin, /sbin, /usr."""

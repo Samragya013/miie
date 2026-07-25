@@ -8,7 +8,6 @@ Verifies that the following fixes remain working:
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # CLI Help Text (Issue 23)
 # ---------------------------------------------------------------------------
@@ -122,7 +121,5 @@ class TestCORSConfiguration:
         """App should have CORS middleware."""
         from miie.api.server import app
 
-        middleware_classes = [
-            m.cls.__name__ for m in app.user_middleware
-        ]
+        middleware_classes = [m.cls.__name__ for m in app.user_middleware]
         assert "CORSMiddleware" in middleware_classes

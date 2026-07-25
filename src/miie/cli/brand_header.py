@@ -35,7 +35,6 @@ from .design_tokens import (
     TOKENS,
 )
 
-
 # ── Logo Variants ──────────────────────────────────────────────────────
 # Derived from the hash-block MIIE logotype, optimized for terminal
 # rendering. Each variant serves a different width category.
@@ -68,6 +67,7 @@ HEADER_STATUS_LABEL = "Status"
 
 
 # ── Adaptive Header Renderer ──────────────────────────────────────────
+
 
 def get_terminal_width() -> int:
     """Get terminal width with safe fallback."""
@@ -224,6 +224,7 @@ def _render_minimal_header(
 
 # ── Status Bar (Bottom) ────────────────────────────────────────────────
 
+
 def render_status_bar(
     left_items: list[tuple[str, str]] | None = None,
     right_items: list[tuple[str, str]] | None = None,
@@ -269,6 +270,7 @@ def render_status_bar(
 
 
 # ── Section Divider ────────────────────────────────────────────────────
+
 
 def render_section_divider(
     title: str,

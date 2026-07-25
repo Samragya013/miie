@@ -113,6 +113,7 @@ def _mock_extract(provider, sample_log=_SAMPLE_GIT_LOG_META, stats=None):
     if stats is None:
         stats = _SAMPLE_DIFF_STATS
     from contextlib import ExitStack
+
     stack = ExitStack()
     stack.enter_context(patch.object(provider, "_run_git_command", return_value=sample_log))
     stack.enter_context(patch.object(provider, "_parallel_diff_stats", return_value=stats))

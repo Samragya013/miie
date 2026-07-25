@@ -69,9 +69,7 @@ class GitHubClient:
         class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
             def redirect_request(self2, req, fp, code, msg, headers, newurl):
                 if not newurl.startswith(_BASE_URL):
-                    raise urllib.error.HTTPError(
-                        newurl, 403, "Redirect outside GitHub API not allowed", headers, None
-                    )
+                    raise urllib.error.HTTPError(newurl, 403, "Redirect outside GitHub API not allowed", headers, None)
                 return urllib.request.redirect_request(req, fp, code, msg, headers, newurl)
 
         opener = urllib.request.build_opener(_SafeRedirectHandler)

@@ -151,20 +151,40 @@ class TestAnalyze:
         assert result.exit_code == 0
 
     def test_analyze_since_until(self, runner, small_repo):
-        result = runner.invoke(cli, ["analyze", str(small_repo), "--since", "2024-01-01", "--until", "2024-01-31", "-f", "json"])
+        result = runner.invoke(
+            cli, ["analyze", str(small_repo), "--since", "2024-01-01", "--until", "2024-01-31", "-f", "json"]
+        )
         # May produce 0 windows with narrow range, but should not crash
         assert result.exit_code in (0, 1)
 
     def test_analyze_exclude_bots(self, runner, small_repo):
-        result = runner.invoke(cli, ["analyze", str(small_repo), "--exclude-bots", "-w", "commit", "-s", "5", "-f", "json"])
+        result = runner.invoke(
+            cli, ["analyze", str(small_repo), "--exclude-bots", "-w", "commit", "-s", "5", "-f", "json"]
+        )
         assert result.exit_code == 0
 
     def test_analyze_custom_thresholds(self, runner, small_repo):
-        result = runner.invoke(cli, ["analyze", str(small_repo), "--thresholds", '{"D-01": {"alpha": 0.05}}', "-w", "commit", "-s", "5", "-f", "json"])
+        result = runner.invoke(
+            cli,
+            [
+                "analyze",
+                str(small_repo),
+                "--thresholds",
+                '{"D-01": {"alpha": 0.05}}',
+                "-w",
+                "commit",
+                "-s",
+                "5",
+                "-f",
+                "json",
+            ],
+        )
         assert result.exit_code == 0
 
     def test_analyze_seed(self, runner, small_repo):
-        result = runner.invoke(cli, ["analyze", str(small_repo), "--seed", "99", "-w", "commit", "-s", "5", "-f", "json"])
+        result = runner.invoke(
+            cli, ["analyze", str(small_repo), "--seed", "99", "-w", "commit", "-s", "5", "-f", "json"]
+        )
         assert result.exit_code == 0
 
     def test_analyze_forensic(self, runner, small_repo):
@@ -189,7 +209,9 @@ class TestAnalyze:
 
     def test_analyze_output_dir(self, runner, small_repo, tmp_path):
         out = tmp_path / "my_output"
-        result = runner.invoke(cli, ["analyze", str(small_repo), "-o", str(out), "-w", "commit", "-s", "5", "-f", "json"])
+        result = runner.invoke(
+            cli, ["analyze", str(small_repo), "-o", str(out), "-w", "commit", "-s", "5", "-f", "json"]
+        )
         assert result.exit_code == 0
 
     def test_analyze_url_dry_run(self, runner):

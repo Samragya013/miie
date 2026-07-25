@@ -95,35 +95,25 @@ _TEST_FILE_RE = re.compile(
     r"|(?:^|/)[^/]*\.(spec|test)\.(js|ts|jsx|tsx)$"
     r"|(?:^|/)__tests__/.*\.(js|ts|jsx|tsx)$"
     # Java
-    r"|(?:^|/)[^/]*Test\.java$"
-    r"|(?:^|/)tests?/.*\.java$"
+    r"|(?:^|/)[^/]*Test\.java$" r"|(?:^|/)tests?/.*\.java$"
     # Go
     r"|(?:^|/)[^/]*_test\.go$"
     # Ruby
-    r"|(?:^|/)[^/]*_test\.rb$"
-    r"|(?:^|/)[^/]*_spec\.rb$"
-    r"|(?:^|/)spec/.*\.rb$"
+    r"|(?:^|/)[^/]*_test\.rb$" r"|(?:^|/)[^/]*_spec\.rb$" r"|(?:^|/)spec/.*\.rb$"
     # Rust
-    r"|(?:^|/)tests?/.*\.rs$"
-    r"|(?:^|/)src/.*_test\.rs$"
+    r"|(?:^|/)tests?/.*\.rs$" r"|(?:^|/)src/.*_test\.rs$"
     # C#
-    r"|(?:^|/)[^/]*Test\.cs$"
-    r"|(?:^|/)tests?/.*\.cs$"
+    r"|(?:^|/)[^/]*Test\.cs$" r"|(?:^|/)tests?/.*\.cs$"
     # PHP
-    r"|(?:^|/)[^/]*Test\.php$"
-    r"|(?:^|/)tests?/.*\.php$"
+    r"|(?:^|/)[^/]*Test\.php$" r"|(?:^|/)tests?/.*\.php$"
     # Kotlin
-    r"|(?:^|/)[^/]*Test\.kt$"
-    r"|(?:^|/)tests?/.*\.kt$"
+    r"|(?:^|/)[^/]*Test\.kt$" r"|(?:^|/)tests?/.*\.kt$"
     # Swift
     r"|(?:^|/)[^/]*Tests?\.swift$"
     # Scala
-    r"|(?:^|/)[^/]*Spec\.scala$"
-    r"|(?:^|/)tests?/.*\.scala$"
+    r"|(?:^|/)[^/]*Spec\.scala$" r"|(?:^|/)tests?/.*\.scala$"
     # C/C++
-    r"|(?:^|/)[^/]*_test\.(c|cc|cpp|h)$"
-    r"|(?:^|/)tests?/.*\.(c|cc|cpp)$"
-    r"|(?:^|/)test/.*\.(c|cc|cpp)$",
+    r"|(?:^|/)[^/]*_test\.(c|cc|cpp|h)$" r"|(?:^|/)tests?/.*\.(c|cc|cpp)$" r"|(?:^|/)test/.*\.(c|cc|cpp)$",
     re.IGNORECASE,
 )
 
@@ -139,6 +129,7 @@ _FRESHNESS_WINDOW_DAYS: int = 180
 # Priority: MIIE_NUMSTAT_LIMIT env var > platform default.
 # ---------------------------------------------------------------------------
 
+
 def _get_numstat_limit() -> int:
     """Return platform-adaptive numstat commit limit."""
     env_override = os.environ.get("MIIE_NUMSTAT_LIMIT")
@@ -150,11 +141,12 @@ def _get_numstat_limit() -> int:
 
     system = platform.system()
     if system == "Windows":
-        return 5_000   # empirical ceiling on Windows
+        return 5_000  # empirical ceiling on Windows
     elif system == "Darwin":
         return 20_000  # macOS: moderate
     else:
         return 50_000  # Linux: generous
+
 
 _NUMSTAT_COMMIT_LIMIT: int = _get_numstat_limit()
 
@@ -940,12 +932,10 @@ class GitObservationProvider(BaseGitProvider):
         numstat_limit = min(len(shas), _NUMSTAT_COMMIT_LIMIT)
 
         try:
-            import tempfile
             import os
+            import tempfile
 
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".txt", delete=False, encoding="utf-8"
-            ) as tmp:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as tmp:
                 tmp_path = tmp.name
 
             try:
@@ -953,11 +943,17 @@ class GitObservationProvider(BaseGitProvider):
                 with open(tmp_path, "w", encoding="utf-8") as f:
                     subprocess.run(
                         [
-                            "git", "-C", repo_path, "log",
-                            "--no-merges", "--format=%H", "--numstat",
+                            "git",
+                            "-C",
+                            repo_path,
+                            "log",
+                            "--no-merges",
+                            "--format=%H",
+                            "--numstat",
                             f"-{numstat_limit}",
                         ],
-                        stdout=f, stderr=subprocess.DEVNULL,
+                        stdout=f,
+                        stderr=subprocess.DEVNULL,
                         timeout=int(min(timeout_seconds, 120)),
                         check=False,
                     )
@@ -1003,7 +999,7 @@ class GitObservationProvider(BaseGitProvider):
 
         except Exception:
             # Fallback: sequential per-commit (slow but reliable)
-            return self._diff_stats_sequential(repo_path, shas[:min(100, len(shas))], timeout_seconds)
+            return self._diff_stats_sequential(repo_path, shas[: min(100, len(shas))], timeout_seconds)
 
         # For commits beyond the numstat limit, set default (0, 0)
         for sha in shas:
@@ -1157,8 +1153,8 @@ class GitObservationProvider(BaseGitProvider):
                     "message": message,
                     "insertions": insertions,
                     "deletions": deletions,
-                    }
-                )
+                }
+            )
         return commits
 
     @staticmethod

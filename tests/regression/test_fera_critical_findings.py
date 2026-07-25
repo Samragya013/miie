@@ -166,8 +166,8 @@ class TestFERACriticalFindings:
 
     def test_cli_analyze_dry_run(self):
         """C4: CLI analyze --dry-run should exit cleanly."""
-        import subprocess
         import os
+        import subprocess
 
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"

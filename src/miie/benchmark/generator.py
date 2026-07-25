@@ -285,7 +285,9 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
         Assumes files are absolute paths.
         """
         rel_files = [str(Path(f).relative_to(repo_path)).replace("\\", "/") for f in files]
-        result_add = subprocess.run(["git", "add"] + rel_files, cwd=repo_path, capture_output=True, timeout=30, env=_GIT_SAFE_ENV)
+        result_add = subprocess.run(
+            ["git", "add"] + rel_files, cwd=repo_path, capture_output=True, timeout=30, env=_GIT_SAFE_ENV
+        )
         if result_add.returncode != 0:
             raise subprocess.CalledProcessError(
                 result_add.returncode,
@@ -293,7 +295,9 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
                 result_add.stdout,
                 result_add.stderr,
             )
-        result_commit = subprocess.run(["git", "commit", "-m", message], cwd=repo_path, capture_output=True, timeout=30, env=_GIT_SAFE_ENV)
+        result_commit = subprocess.run(
+            ["git", "commit", "-m", message], cwd=repo_path, capture_output=True, timeout=30, env=_GIT_SAFE_ENV
+        )
         if result_commit.returncode != 0:
             raise subprocess.CalledProcessError(
                 result_commit.returncode,
